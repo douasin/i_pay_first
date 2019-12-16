@@ -22,17 +22,17 @@ class User {
   }
 }
 
-class BalanceHistory {
-  final int history_id;
+class Transaction {
+  final int transaction_id;
   final String reason;
-  final int created_at;
+  final int ctime;
 
-  BalanceHistory({this.history_id, this.reason, this.created_at});
+  BalanceHistory({this.transaction_id, this.reason, this.ctime});
 }
 
-class UserBalanceHistory {
+class UserTransaction {
   final int user_id;
-  final int history_id;
+  final int transaction_id;
 
-  UserBalanceHistory({this.user_id, this.history_id});
+  UserBalanceHistory({this.user_id, this.transaction_id});
 }

@@ -95,7 +95,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: _balanceItems(),
       floatingActionButton: FloatingActionButton(
-        // onPressed: _incrementCounter,
+        // onPressed: _addTransaction,
         tooltip: 'Increment',
         child: Icon(Icons.add),
       ),
