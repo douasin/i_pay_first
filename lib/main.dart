@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:i_pay_first/home.dart';
+import 'package:i_pay_first/home/home.dart';
 
 // TODO: oauth2
 // TODO: plus nevigator
