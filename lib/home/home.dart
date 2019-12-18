@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
+// import 'package:path/path.dart';
+// import 'package:sqflite/sqflite.dart';
 
 import 'package:i_pay_first/ipflib/models.dart';
 
@@ -84,6 +84,21 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  void _goToAddPage() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (BuildContext context) {
+          return Scaffold(
+            appBar: AppBar(
+              title: Text('Add a transaction'),
+            ),
+            body: Center(child: Text('placeholder')),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -95,7 +110,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: _balanceItems(),
       floatingActionButton: FloatingActionButton(
-        // onPressed: _addTransaction,
+        onPressed: _goToAddPage,
         tooltip: 'Increment',
         child: Icon(Icons.add),
       ),

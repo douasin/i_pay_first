@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 
 import 'package:i_pay_first/home/home.dart';
 
-// TODO: oauth2
+// TODO: oauth2 -> xxx
 // TODO: plus nevigator
 // TODO: db
 // TODO: tutorial for newbie
+// TODO: editor info
+// TODO: clean balance
+// TODO: show total valance at menu
 
 void main() => runApp(MyApp());
 

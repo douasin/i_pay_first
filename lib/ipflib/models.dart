@@ -23,16 +23,16 @@ class User {
 }
 
 class Transaction {
-  final int transaction_id;
-  final String reason;
-  final int ctime;
+  int transaction_id;
+  String reason;
+  int ctime;
 
-  BalanceHistory({this.transaction_id, this.reason, this.ctime});
+  Transaction({this.transaction_id, this.reason, this.ctime});
 }
 
 class UserTransaction {
-  final int user_id;
-  final int transaction_id;
+  int user_id;
+  int transaction_id;
 
-  UserBalanceHistory({this.user_id, this.transaction_id});
+  UserTransaction({this.user_id, this.transaction_id});
 }
