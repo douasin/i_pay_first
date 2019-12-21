@@ -3,7 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'package:i_pay_first/ipflib/models.dart';
-import 'package:i_pay_first/home/home_service.dart';
+import 'package:i_pay_first/ipflib/user_manager.dart';
+import 'package:i_pay_first/utilities/state_model.dart';
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
@@ -15,13 +16,13 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> implements HomeService {
-  HomeHelper homeHelper;
+class _MyHomePageState extends State<MyHomePage> implements StateWithUpdate {
+  UserManager userManager;
 
   @override
   void initState() {
     super.initState();
-    homeHelper = HomeHelper(this);
+    userManager = UserManager(this);
   }
 
   final TextStyle _biggerFont = const TextStyle(fontSize: 18.0);

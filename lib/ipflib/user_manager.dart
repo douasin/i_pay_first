@@ -3,16 +3,14 @@ import 'dart:async';
 import 'package:i_pay_first/ipflib/db_manager.dart';
 import 'package:i_pay_first/ipflib/models.dart';
 
-abstract class HomeService {
-  void screenUpdate();
-}
+import 'package:i_pay_first/utilities/state_model.dart';
 
-class HomeHelper {
-  HomeService _view;
+class UserManager {
+  StateWithUpdate _view;
 
   var db_manager = DatabaseManager();
 
-  HomeHelper(this._view);
+  UserManager(this._view);
 
   delete(int user_id) {
     var db_manager = DatabaseManager();

@@ -54,6 +54,10 @@ class DatabaseManager {
             `history_id` BIGINT UNSIGNED NOT NULL
         );""",
     );
+    await createUser(User(user_id: 1, name: 'Fendy', balance: 30, order: 0));
+    await createUser(User(user_id: 2, name: 'Jason', balance: 50, order: 0));
+    await createUser(User(user_id: 3, name: 'Yaru', balance: -4.5, order: 0));
+    await createUser(User(user_id: 4, name: 'Boss', balance: -30, order: 0));
   }
 
   Future<int> createUser(User user) async {
