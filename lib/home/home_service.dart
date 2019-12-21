@@ -1,7 +1,5 @@
 import 'dart:async';
 
-import 'package:sqflite/sqflite.dart';
-
 import 'package:i_pay_first/ipflib/db_manager.dart';
 import 'package:i_pay_first/ipflib/models.dart';
 
@@ -9,24 +7,24 @@ abstract class HomeService {
   void screenUpdate();
 }
 
-class HomeService {
+class HomeHelper {
   HomeService _view;
 
-  Database db = DatabaseManager();
+  var db_manager = DatabaseManager();
 
-  HomeService(this._view);
+  HomeHelper(this._view);
 
   delete(int user_id) {
-    Database db = DatabaseManager();
-    db.deleteUserByUserId(user_id);
+    var db_manager = DatabaseManager();
+    db_manager.deleteUserByUserId(user_id);
     updateScreen();
   }
 
-  Future<List<User>> getUser() {
-    return db.getUser();
+  Future<List<User>> getUsers() {
+    return db_manager.getUsers();
   }
 
-  updateScren() {
+  updateScreen() {
     _view.screenUpdate();
   }
 }

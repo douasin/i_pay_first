@@ -16,12 +16,12 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> implements HomeService {
-  HomeService homeService;
+  HomeHelper homeHelper;
 
   @override
   void initState() {
     super.initState();
-    homeService = HomeService(this);
+    homeHelper = HomeHelper(this);
   }
 
   final TextStyle _biggerFont = const TextStyle(fontSize: 18.0);
@@ -122,5 +122,10 @@ class _MyHomePageState extends State<MyHomePage> implements HomeService {
         child: Icon(Icons.add),
       ),
     );
+
+    @override
+    void screenUpdate() {
+      setState(() {});
+    }
   }
 }
