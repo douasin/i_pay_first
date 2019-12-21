@@ -1,12 +1,13 @@
 import 'package:decimal/decimal.dart';
 
-final int DB_PRICE_INFLATION_FACTOR = 100000;
+final int dbPriceInflationFactor = 100000;
 
-int inflatePrice(num price) {
-  return int.parse(Decimal.parse(price.toString()) * DB_PRICE_INFLATION_FACTOR);
+int inflatePrice(String price) {
+  return (Decimal.parse(price) * Decimal.fromInt(dbPriceInflationFactor))
+      .toInt();
 }
 
 Decimal deflatePrice(int price) {
   Decimal decimalPrice = Decimal.parse(price.toString());
-  return decimalPrice / Decimal.parse(DB_PRICE_INFLATION_FACTOR.toString());
+  return decimalPrice / Decimal.parse(dbPriceInflationFactor.toString());
 }

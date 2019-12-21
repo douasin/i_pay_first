@@ -8,18 +8,18 @@ import 'package:i_pay_first/utilities/state_model.dart';
 class UserManager {
   StateWithUpdate _view;
 
-  var db_manager = DatabaseManager();
+  var dbManager = DatabaseManager();
 
   UserManager(this._view);
 
-  delete(int user_id) {
-    var db_manager = DatabaseManager();
-    db_manager.deleteUserByUserId(user_id);
+  delete(int userId) {
+    var dbManager = DatabaseManager();
+    dbManager.deleteUserByUserId(userId);
     updateScreen();
   }
 
-  Future<List<User>> getUsers() {
-    return db_manager.getUsers();
+  Future<List<User>> getUsers() async {
+    return dbManager.getUsers();
   }
 
   updateScreen() {

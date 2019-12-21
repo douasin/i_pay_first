@@ -1,10 +1,8 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 
-import 'package:i_pay_first/ipflib/models.dart';
-import 'package:i_pay_first/ipflib/user_manager.dart';
-import 'package:i_pay_first/utilities/state_model.dart';
+import '../ipflib/models.dart';
+import '../ipflib/user_manager.dart';
+import '../utilities/state_model.dart';
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
@@ -25,7 +23,6 @@ class _MyHomePageState extends State<MyHomePage> implements StateWithUpdate {
     userManager = UserManager(this);
   }
 
-  final TextStyle _biggerFont = const TextStyle(fontSize: 18.0);
   Widget _menuItems() {
     return ListView(
       padding: EdgeInsets.zero,
@@ -47,48 +44,6 @@ class _MyHomePageState extends State<MyHomePage> implements StateWithUpdate {
           title: Text('history'),
         ),
       ],
-    );
-  }
-
-  Widget _buildRow(User user) {
-    return ListTile(
-      title: Text(
-        user.name,
-        style: _biggerFont,
-      ),
-      subtitle: Text(
-        '${user.balance}',
-        style: TextStyle(
-          color: Colors.red,
-        ),
-      ),
-      trailing: Icon(
-        Icons.mode_edit,
-        color: Colors.grey,
-      ),
-    );
-  }
-
-  // TODO: load from db
-  final List<User> user_list = [
-    User(user_id: 1, name: 'Fendy', balance: 30, order: 0),
-    User(user_id: 2, name: 'Jason', balance: 50, order: 0),
-    User(user_id: 3, name: 'Yaru', balance: -4.5, order: 0),
-    User(user_id: 4, name: 'Boss', balance: -30, order: 0),
-  ];
-
-  Widget _balanceItems() {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16.0),
-      itemBuilder: (context, i) {
-        if (i.isOdd) return Divider();
-
-        final index = i ~/ 2;
-        if (index >= user_list.length) {
-          return null;
-        }
-        return _buildRow(user_list[index]);
-      },
     );
   }
 
@@ -116,7 +71,36 @@ class _MyHomePageState extends State<MyHomePage> implements StateWithUpdate {
       drawer: Drawer(
         child: _menuItems(),
       ),
-      body: _balanceItems(),
+      body: FutureBuilder<List<User>>(
+        future: userManager.getUsers(),
+        builder: (BuildContext context, AsyncSnapshot<List<User>> snapshot) {
+          /*
+          if (snapshot.hasData) {
+            return UserList(snapshot.data, userManager);
+          } else {
+            return Container(child: Text('empty...'));
+          }
+          */
+          switch (snapshot.connectionState) {
+            case ConnectionState.active:
+            case ConnectionState.none:
+            case ConnectionState.waiting:
+              return Center(
+                  child: Text(
+                      'state_active: ${ConnectionState.active}, state_none: ${ConnectionState.none}, state_waiting: ${ConnectionState.waiting}'));
+            // return Center(child: CircularProgressIndicator());
+            case ConnectionState.done:
+              if (snapshot.hasError) {
+                return Container(child: Text('error: ${snapshot.error}'));
+              }
+              if (snapshot.hasData) {
+                return UserList(snapshot.data, userManager);
+              } else {
+                return Container(child: Text('empty...'));
+              }
+          }
+        },
+      ), //_balanceItems(),
       floatingActionButton: FloatingActionButton(
         onPressed: _goToAddPage,
         tooltip: 'Increment',
@@ -128,5 +112,49 @@ class _MyHomePageState extends State<MyHomePage> implements StateWithUpdate {
   @override
   void screenUpdate() {
     setState(() {});
+  }
+}
+
+class UserList extends StatelessWidget {
+  final List<User> userList;
+  final UserManager userManager;
+
+  UserList(this.userList, this.userManager, {Key key}) : super(key: key);
+
+  final TextStyle _biggerFont = const TextStyle(fontSize: 18.0);
+
+  Widget _buildRow(User user) {
+    return ListTile(
+      title: Text(
+        user.name,
+        style: _biggerFont,
+      ),
+      subtitle: Text(
+        '${user.balance}',
+        style: TextStyle(
+          color: Colors.red,
+        ),
+      ),
+      trailing: Icon(
+        Icons.mode_edit,
+        color: Colors.grey,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16.0),
+      itemBuilder: (context, i) {
+        if (i.isOdd) return Divider();
+
+        final index = i ~/ 2;
+        if (index >= userList.length) {
+          return null;
+        }
+        return _buildRow(userList[index]);
+      },
+    );
   }
 }
