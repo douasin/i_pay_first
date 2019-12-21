@@ -58,7 +58,7 @@ class DatabaseManager {
 
   Future<int> createUser(User user) async {
     final Database dbClient = await db;
-    Future<int> res = dbClient.insert("user_tab", user.toMap());
+    int res = await dbClient.insert("user_tab", user.toMap());
 
     return res;
   }
@@ -82,8 +82,8 @@ class DatabaseManager {
 
   Future<int> deleteUserByUserId(int user_id) async {
     final Database dbClient = await db;
-    Future<int> res =
-        dbClient.rawDelete('DELETE FROM user_tab where id = ?', [user_id]);
+    int res = await dbClient
+        .rawDelete('DELETE FROM user_tab where id = ?', [user_id]);
 
     return res;
   }

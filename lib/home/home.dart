@@ -122,10 +122,10 @@ class _MyHomePageState extends State<MyHomePage> implements HomeService {
         child: Icon(Icons.add),
       ),
     );
+  }
 
-    @override
-    void screenUpdate() {
-      setState(() {});
-    }
+  @override
+  void screenUpdate() {
+    setState(() {});
   }
 }
