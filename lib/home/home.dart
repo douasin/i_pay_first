@@ -1,10 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-// import 'package:path/path.dart';
-// import 'package:sqflite/sqflite.dart';
 
 import 'package:i_pay_first/ipflib/models.dart';
+import 'package:i_pay_first/home/home_service.dart';
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
@@ -16,7 +15,15 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> implements HomeService {
+  HomeService homeService;
+
+  @override
+  void initState() {
+    super.initState();
+    homeService = HomeService(this);
+  }
+
   final TextStyle _biggerFont = const TextStyle(fontSize: 18.0);
   Widget _menuItems() {
     return ListView(
