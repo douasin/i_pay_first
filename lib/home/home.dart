@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../corelib/price_manager.dart';
 import '../ipflib/models.dart';
 import '../ipflib/user_manager.dart';
 import '../utilities/state_model.dart';
@@ -130,7 +131,7 @@ class UserList extends StatelessWidget {
         style: _biggerFont,
       ),
       subtitle: Text(
-        '${user.balance}',
+        '${deflatePrice(user.balance)}',
         style: TextStyle(
           color: Colors.red,
         ),

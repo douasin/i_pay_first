@@ -39,7 +39,9 @@ class DatabaseManager {
             `user_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
             `name` VARCHAR(255) NOT NULL,
             `balance` INTEGER NOT NULL,
-            `order` INTEGER NOT NULL
+            `order` INTEGER NOT NULL,
+            `ctime` INTEGER NOT NULL,
+            `mtime` INTEGER NOT NULL
         );""",
     );
 
@@ -68,6 +70,7 @@ class DatabaseManager {
 
   Future<List<User>> getUsers() async {
     /*
+    // TEST DATA
     await deleteUserByUserId(1);
     await deleteUserByUserId(2);
     await deleteUserByUserId(3);
@@ -79,10 +82,8 @@ class DatabaseManager {
     await createUser(User(userId: 3, name: 'Yaru', balance: -45000, order: 0));
     await createUser(User(userId: 4, name: 'Boss', balance: -3000, order: 0));
     */
-    print('in get user');
     final Database dbClient = await db;
     List<Map> results = await dbClient.rawQuery('SELECT * FROM user_tab');
-    print('results: $results');
     List<User> userList = [];
     for (var result in results) {
       User user = User(
@@ -90,6 +91,8 @@ class DatabaseManager {
         name: result['name'],
         balance: result['balance'],
         order: result['order'],
+        ctime: result['ctime'],
+        mtime: result['mtime'],
       );
       userList.add(user);
     }
