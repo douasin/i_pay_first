@@ -2,13 +2,10 @@ import 'package:flutter/material.dart';
 
 import 'home/home.dart';
 
-// TODO: oauth2 -> xxx
-// TODO: plus nevigator
-// TODO: db
+// TODO: oauth2 -> xxx -> save to googledrive?
 // TODO: tutorial for newbie
 // TODO: editor info
-// TODO: clean balance
-// TODO: show total valance at menu
+// TODO: clean balance button
 
 void main() => runApp(MyApp());
 
