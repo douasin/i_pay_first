@@ -1,3 +1,4 @@
+// User & Transaction
 class User {
   int userId;
   String name;
@@ -75,3 +76,6 @@ class UserTransaction {
     return map;
   }
 }
+
+// Settings
+// class Setting { }
