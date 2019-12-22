@@ -19,6 +19,7 @@ class MenuPage extends StatelessWidget {
             ),
           ),
         ),
+        // TODO: show balance under menu
         ListTile(
           leading: Icon(Icons.history),
           title: Text('history'),

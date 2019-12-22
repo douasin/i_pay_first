@@ -6,12 +6,12 @@ import '../utilities/state_model.dart';
 
 import 'list/list.dart';
 import 'menu/menu.dart';
+import 'add/add.dart';
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
 
   final String title;
-  final String balance = '+300';
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -30,12 +30,7 @@ class _MyHomePageState extends State<MyHomePage> implements StateWithUpdate {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (BuildContext context) {
-          return Scaffold(
-            appBar: AppBar(
-              title: Text('Add a transaction'),
-            ),
-            body: Center(child: Text('placeholder')),
-          );
+          return AddTransactionPage();
         },
       ),
     );
@@ -45,7 +40,7 @@ class _MyHomePageState extends State<MyHomePage> implements StateWithUpdate {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title + ' ' + widget.balance),
+        title: Text(widget.title),
       ),
       drawer: Drawer(
         child: MenuPage(),
@@ -72,7 +67,7 @@ class _MyHomePageState extends State<MyHomePage> implements StateWithUpdate {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _goToAddPage,
-        tooltip: 'Increment',
+        tooltip: 'Add Txn',
         child: Icon(Icons.add),
       ),
     );

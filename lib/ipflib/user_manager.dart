@@ -22,6 +22,15 @@ class UserManager {
     return dbManager.getUsers();
   }
 
+  Future<int> getTotalBalance() async {
+    List<User> users = await getUsers();
+    int total = 0;
+    for (var user in users) {
+      total += user.balance;
+    }
+    return total;
+  }
+
   updateScreen() {
     _view.screenUpdate();
   }

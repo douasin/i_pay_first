@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 import '../../ipflib/user_manager.dart';
 import '../../utilities/state_model.dart';
 
@@ -19,5 +21,20 @@ class _AddTransactionPageState extends State<AddTransactionPage>
   void initState() {
     super.initState();
     userManager = UserManager(this);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Add a transaction'),
+      ),
+      body: Center(child: Text('placeholder')),
+    );
+  }
+
+  @override
+  void screenUpdate() {
+    setState(() {});
   }
 }
