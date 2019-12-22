@@ -44,7 +44,7 @@ class _MenuPageState extends State<MenuPage> implements StateWithUpdate {
               Center(
                 child: Padding(
                   padding: const EdgeInsets.only(
-                    top: 22,
+                    top: 28,
                   ),
                   child: FutureBuilder<int>(
                     future: userManager.getTotalBalance(),
@@ -81,6 +81,7 @@ class _MenuPageState extends State<MenuPage> implements StateWithUpdate {
                                     text: balanceString,
                                     style: TextStyle(
                                       color: balanceColor,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                 ],
@@ -101,6 +102,11 @@ class _MenuPageState extends State<MenuPage> implements StateWithUpdate {
         ListTile(
           leading: Icon(Icons.history),
           title: Text('history'),
+        ),
+        Divider(),
+        ListTile(
+          leading: Icon(Icons.settings),
+          title: Text('settings'),
         ),
       ],
     );
