@@ -26,8 +26,9 @@ class UserList extends StatelessWidget {
         ),
       ),
       trailing: Icon(
-        Icons.mode_edit,
-        color: Colors.grey,
+        // Icons.mode_edit,
+        Icons.more_vert,
+        // color: Colors.grey,
       ),
     );
   }

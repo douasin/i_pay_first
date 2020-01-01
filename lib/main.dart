@@ -6,6 +6,7 @@ import 'home/home.dart';
 // TODO: tutorial for newbie
 // TODO: editor info
 // TODO: clean balance button
+// TODO: sorted/ most transaction / order field / created time (default) / hide 0 transaction
 
 void main() => runApp(MyApp());
 

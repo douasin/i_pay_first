@@ -12,9 +12,8 @@ class UserManager {
 
   UserManager(this._view);
 
-  delete(int userId) {
-    var dbManager = DatabaseManager();
-    dbManager.deleteUserByUserId(userId);
+  Future<void> delete(int userId) async {
+    await dbManager.deleteUserByUserId(userId);
     updateScreen();
   }
 
