@@ -85,90 +85,99 @@ class _AddTransactionListState extends State<AddTransactionList>
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(16.0),
-      children: <Widget>[
-        TextFormField(
-          decoration: InputDecoration(
-            border: OutlineInputBorder(),
-            labelText: 'Pay For',
-            hintText: 'lunch or dinner?',
-            suffixIcon: IconButton(
-              icon: Icon(Icons.close),
-              onPressed: () => null,
-            ),
+  List<Widget> formList() {
+    return <Widget>[
+      TextFormField(
+        decoration: InputDecoration(
+          border: OutlineInputBorder(),
+          labelText: 'Pay For',
+          hintText: 'lunch or dinner?',
+          suffixIcon: IconButton(
+            icon: Icon(Icons.close),
+            onPressed: () => null,
           ),
         ),
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: Container(
-                margin: EdgeInsets.only(right: 5.0),
-                child: RaisedButton(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      Text('Tax & Fee'),
-                      Icon(showTaxFee ? Icons.expand_less : Icons.expand_more),
-                    ],
-                  ),
-                  onPressed: () => showOrHideTaxFee(),
+      ),
+      Row(
+        children: <Widget>[
+          Expanded(
+            child: Container(
+              margin: EdgeInsets.only(right: 5.0),
+              child: RaisedButton(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Text('Tax & Fee'),
+                    Icon(showTaxFee ? Icons.expand_less : Icons.expand_more),
+                  ],
                 ),
+                onPressed: () => showOrHideTaxFee(),
               ),
             ),
-            Expanded(
-              child: Container(
-                margin: EdgeInsets.only(left: 5.0),
-                child: RaisedButton(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      Text('Split Equal'),
-                      Icon(showSplit ? Icons.expand_less : Icons.expand_more),
-                    ],
-                  ),
-                  onPressed: () => showOrHideSplit(),
+          ),
+          Expanded(
+            child: Container(
+              margin: EdgeInsets.only(left: 5.0),
+              child: RaisedButton(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Text('Split Equal'),
+                    Icon(showSplit ? Icons.expand_less : Icons.expand_more),
+                  ],
                 ),
+                onPressed: () => showOrHideSplit(),
               ),
             ),
-          ],
-        ),
-        // split collapse
-        showSplit
-            ? Row(
-                children: <Widget>[
-                  Expanded(
-                    child: TextFormField(
-                      keyboardType: TextInputType.number,
-                      inputFormatters: <TextInputFormatter>[
-                        WhitelistingTextInputFormatter
-                            .digitsOnly, // only numbers can be entered
-                      ],
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                        labelText: 'Pay Amount',
-                        hintText: 'the money u pay first',
-                        suffixIcon: IconButton(
-                          icon: Icon(Icons.close),
-                          onPressed: () => splitAmountController.clear(),
-                        ),
+          ),
+        ],
+      ),
+      // split collapse
+      showSplit
+          ? Row(
+              children: <Widget>[
+                Expanded(
+                  child: TextFormField(
+                    keyboardType: TextInputType.number,
+                    inputFormatters: <TextInputFormatter>[
+                      WhitelistingTextInputFormatter
+                          .digitsOnly, // only numbers can be entered
+                    ],
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Pay Amount',
+                      hintText: 'the money u pay first',
+                      suffixIcon: IconButton(
+                        icon: Icon(Icons.close),
+                        onPressed: () => splitAmountController.clear(),
                       ),
-                      controller: splitAmountController,
                     ),
+                    controller: splitAmountController,
                   ),
-                  SizedBox(width: 5),
-                  RaisedButton(
-                    child: Text('split'),
-                    onPressed: () => null,
-                  ),
-                ],
-              )
-            : Container(),
-        // tax button
-        // TODO: input box of money, inputbox of tax and service fee (can cache)
-        // TODO: share to user has checked by check box, the amount can manually edit by inputbox
+                ),
+                SizedBox(width: 5),
+                RaisedButton(
+                  child: Text('split'),
+                  onPressed: () => null,
+                ),
+              ],
+            )
+          : Container(),
+      // TODO: input box of money, inputbox of tax and service fee (can cache)
+      // TODO: share to user has checked by check box, the amount can manually edit by inputbox
+    ];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomScrollView(
+      slivers: <Widget>[
+        SliverPadding(
+          padding: const EdgeInsets.all(16.0),
+          sliver: SliverList(
+            delegate: SliverChildListDelegate(formList()),
+          ),
+        ),
       ],
     );
   }
