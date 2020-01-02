@@ -49,10 +49,40 @@ class _AddTransactionListState extends State<AddTransactionList>
   UserManager userManager;
   // Settings Manager
 
+  bool showTaxFee = false;
+  bool showSplit = false;
+
+  final splitAmountController = TextEditingController();
+
+  void showOrHideSplit() {
+    setState(() {
+      showSplit = !showSplit;
+      if (showSplit && showTaxFee) {
+        showTaxFee = false;
+      }
+    });
+  }
+
+  void showOrHideTaxFee() {
+    setState(() {
+      showTaxFee = !showTaxFee;
+      if (showTaxFee && showSplit) {
+        showSplit = false;
+      }
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     userManager = UserManager(this);
+  }
+
+  @override
+  void dispose() {
+    // Clean up the controller when the widget is disposed.
+    splitAmountController.dispose();
+    super.dispose();
   }
 
   @override
@@ -64,6 +94,11 @@ class _AddTransactionListState extends State<AddTransactionList>
           decoration: InputDecoration(
             border: OutlineInputBorder(),
             labelText: 'Pay For',
+            hintText: 'lunch or dinner?',
+            suffixIcon: IconButton(
+              icon: Icon(Icons.close),
+              onPressed: () => null,
+            ),
           ),
         ),
         Row(
@@ -72,8 +107,14 @@ class _AddTransactionListState extends State<AddTransactionList>
               child: Container(
                 margin: EdgeInsets.only(right: 5.0),
                 child: RaisedButton(
-                  child: Text('Tax'),
-                  onPressed: () => null,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Text('Tax & Fee'),
+                      Icon(showTaxFee ? Icons.expand_less : Icons.expand_more),
+                    ],
+                  ),
+                  onPressed: () => showOrHideTaxFee(),
                 ),
               ),
             ),
@@ -81,26 +122,52 @@ class _AddTransactionListState extends State<AddTransactionList>
               child: Container(
                 margin: EdgeInsets.only(left: 5.0),
                 child: RaisedButton(
-                  child: Text('Split Equal'),
-                  onPressed: () => null,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Text('Split Equal'),
+                      Icon(showSplit ? Icons.expand_less : Icons.expand_more),
+                    ],
+                  ),
+                  onPressed: () => showOrHideSplit(),
                 ),
               ),
             ),
           ],
         ),
-        TextFormField(
-          keyboardType: TextInputType.number,
-          inputFormatters: <TextInputFormatter>[
-            WhitelistingTextInputFormatter
-                .digitsOnly, // only numbers can be entered
-          ],
-          decoration: InputDecoration(
-            border: OutlineInputBorder(),
-            labelText: 'Pay Amount',
-          ),
-        ),
+        // split collapse
+        showSplit
+            ? Row(
+                children: <Widget>[
+                  Expanded(
+                    child: TextFormField(
+                      keyboardType: TextInputType.number,
+                      inputFormatters: <TextInputFormatter>[
+                        WhitelistingTextInputFormatter
+                            .digitsOnly, // only numbers can be entered
+                      ],
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Pay Amount',
+                        hintText: 'the money u pay first',
+                        suffixIcon: IconButton(
+                          icon: Icon(Icons.close),
+                          onPressed: () => splitAmountController.clear(),
+                        ),
+                      ),
+                      controller: splitAmountController,
+                    ),
+                  ),
+                  SizedBox(width: 5),
+                  RaisedButton(
+                    child: Text('split'),
+                    onPressed: () => null,
+                  ),
+                ],
+              )
+            : Container(),
+        // tax button
         // TODO: input box of money, inputbox of tax and service fee (can cache)
-        // TODO: share button
         // TODO: share to user has checked by check box, the amount can manually edit by inputbox
       ],
     );
