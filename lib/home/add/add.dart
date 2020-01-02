@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../ipflib/user_manager.dart';
+import '../../ipflib/models.dart';
 import '../../utilities/state_model.dart';
 
 class AddTransactionPage extends StatefulWidget {
@@ -168,17 +169,44 @@ class _AddTransactionListState extends State<AddTransactionList>
     ];
   }
 
+  List<Widget> UserList() {
+    // TODO: future builder
+  }
+
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(
-      slivers: <Widget>[
-        SliverPadding(
-          padding: const EdgeInsets.all(16.0),
-          sliver: SliverList(
-            delegate: SliverChildListDelegate(formList()),
-          ),
-        ),
-      ],
+    return FutureBuilder<List<User>>(
+      future: userManager.getUsers(),
+      builder: (BuildContext context, AsyncSnapshot<List<User>> snapshot) {
+        switch (snapshot.connectionState) {
+          case ConnectionState.active:
+          case ConnectionState.none:
+          case ConnectionState.waiting:
+            return Center(child: CircularProgressIndicator());
+          case ConnectionState.done:
+            if (snapshot.hasError) {
+              return Text('error: ${snapshot.error}');
+            }
+            if (snapshot.hasData) {
+              return CustomScrollView(
+                slivers: <Widget>[
+                  SliverPadding(
+                    padding: const EdgeInsets.all(16.0),
+                    sliver: SliverList(
+                      delegate: SliverChildListDelegate(formList()),
+                    ),
+                  ),
+                  // SliverList(
+                  //   delegate: SliverChildListDelegate(),
+                  // )
+                ],
+              );
+            } else {
+              return Text('empty...');
+            }
+        }
+        return Container();
+      },
     );
   }
 
