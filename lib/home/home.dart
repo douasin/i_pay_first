@@ -54,16 +54,16 @@ class _MyHomePageState extends State<MyHomePage> implements StateWithUpdate {
             case ConnectionState.waiting:
               return Center(child: CircularProgressIndicator());
             case ConnectionState.done:
-              if (snapshot.hasError) {
-                return Container(child: Text('error: ${snapshot.error}'));
-              }
-              if (snapshot.hasData) {
-                return UserList(snapshot.data, userManager);
-              } else {
-                return Center(child: Text('empty...'));
-              }
+              break;
           }
-          return Container();
+          if (snapshot.hasError) {
+            return Container(child: Text('error: ${snapshot.error}'));
+          }
+          if (snapshot.hasData) {
+            return UserList(snapshot.data, userManager);
+          } else {
+            return Center(child: Text('empty...'));
+          }
         },
       ),
       floatingActionButton: FloatingActionButton(

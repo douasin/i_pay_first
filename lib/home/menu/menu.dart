@@ -56,42 +56,41 @@ class _MenuPageState extends State<MenuPage> implements StateWithUpdate {
                         case ConnectionState.waiting:
                           return Center(child: CircularProgressIndicator());
                         case ConnectionState.done:
-                          if (snapshot.hasError) {
-                            return Text('error: ${snapshot.error}');
-                          }
-                          if (snapshot.hasData) {
-                            var balance = snapshot.data;
-                            Color balanceColor = Colors.white;
-                            String balanceString = '${deflatePrice(balance)}';
-                            if (balance > 0) {
-                              balanceColor = Colors.red;
-                              balanceString = '+$balanceString';
-                            } else if (balance < 0) {
-                              balanceColor = Colors.green;
-                            }
-                            return RichText(
-                              text: TextSpan(
-                                style: TextStyle(
-                                  fontSize: 28,
-                                  color: Colors.white,
-                                ),
-                                children: <TextSpan>[
-                                  TextSpan(text: 'Balance: '),
-                                  TextSpan(
-                                    text: balanceString,
-                                    style: TextStyle(
-                                      color: balanceColor,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          } else {
-                            return Text('empty...');
-                          }
+                          break;
                       }
-                      return Container();
+                      if (snapshot.hasError) {
+                        return Text('error: ${snapshot.error}');
+                      }
+                      if (!snapshot.hasData) {
+                        return Text('empty...');
+                      }
+                      var balance = snapshot.data;
+                      Color balanceColor = Colors.white;
+                      String balanceString = '${deflatePrice(balance)}';
+                      if (balance > 0) {
+                        balanceColor = Colors.red;
+                        balanceString = '+$balanceString';
+                      } else if (balance < 0) {
+                        balanceColor = Colors.green;
+                      }
+                      return RichText(
+                        text: TextSpan(
+                          style: TextStyle(
+                            fontSize: 28,
+                            color: Colors.white,
+                          ),
+                          children: <TextSpan>[
+                            TextSpan(text: 'Balance: '),
+                            TextSpan(
+                              text: balanceString,
+                              style: TextStyle(
+                                color: balanceColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
                     },
                   ),
                 ),

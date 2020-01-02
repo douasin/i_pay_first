@@ -184,28 +184,28 @@ class _AddTransactionListState extends State<AddTransactionList>
           case ConnectionState.waiting:
             return Center(child: CircularProgressIndicator());
           case ConnectionState.done:
-            if (snapshot.hasError) {
-              return Text('error: ${snapshot.error}');
-            }
-            if (snapshot.hasData) {
-              return CustomScrollView(
-                slivers: <Widget>[
-                  SliverPadding(
-                    padding: const EdgeInsets.all(16.0),
-                    sliver: SliverList(
-                      delegate: SliverChildListDelegate(formList()),
-                    ),
-                  ),
-                  // SliverList(
-                  //   delegate: SliverChildListDelegate(),
-                  // )
-                ],
-              );
-            } else {
-              return Text('empty...');
-            }
+            break;
         }
-        return Container();
+        if (snapshot.hasError) {
+          return Text('error: ${snapshot.error}');
+        }
+        if (!snapshot.hasData) {
+          return Text('empty...');
+        }
+        var balance = snapshot.data;
+        return CustomScrollView(
+          slivers: <Widget>[
+            SliverPadding(
+              padding: const EdgeInsets.all(16.0),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate(formList()),
+              ),
+            ),
+            // SliverList(
+            //   delegate: SliverChildListDelegate(),
+            // )
+          ],
+        );
       },
     );
   }
