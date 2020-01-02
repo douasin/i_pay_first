@@ -169,8 +169,12 @@ class _AddTransactionListState extends State<AddTransactionList>
     ];
   }
 
-  List<Widget> UserList() {
-    // TODO: future builder
+  List<Widget> getUserCheckListByUsers(List<User> users) {
+    return List<Widget>.generate(users.length, (int index) {
+      // TODO checkbox if split toggle on
+      var user = users[index];
+      return Text(user.name);
+    });
   }
 
   @override
@@ -192,7 +196,7 @@ class _AddTransactionListState extends State<AddTransactionList>
         if (!snapshot.hasData) {
           return Text('empty...');
         }
-        var balance = snapshot.data;
+        var users = snapshot.data;
         return CustomScrollView(
           slivers: <Widget>[
             SliverPadding(
@@ -201,9 +205,9 @@ class _AddTransactionListState extends State<AddTransactionList>
                 delegate: SliverChildListDelegate(formList()),
               ),
             ),
-            // SliverList(
-            //   delegate: SliverChildListDelegate(),
-            // )
+            SliverList(
+              delegate: SliverChildListDelegate(getUserCheckListByUsers(users)),
+            )
           ],
         );
       },
