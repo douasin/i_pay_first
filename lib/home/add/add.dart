@@ -54,6 +54,10 @@ class _AddTransactionListState extends State<AddTransactionList>
   bool showSplit = false;
 
   final splitAmountController = TextEditingController();
+  final payForController = TextEditingController();
+
+  Map<int, bool> splitSelected = {};
+  Map<int, TextEditingController> userAmountControllers = {};
 
   void showOrHideSplit() {
     setState(() {
@@ -95,9 +99,10 @@ class _AddTransactionListState extends State<AddTransactionList>
           hintText: 'lunch or dinner?',
           suffixIcon: IconButton(
             icon: Icon(Icons.close),
-            onPressed: () => null,
+            onPressed: () => payForController.clear(),
           ),
         ),
+        controller: payForController,
       ),
       Row(
         children: <Widget>[
@@ -170,10 +175,57 @@ class _AddTransactionListState extends State<AddTransactionList>
   }
 
   List<Widget> getUserCheckListByUsers(List<User> users) {
-    return List<Widget>.generate(users.length, (int index) {
-      // TODO checkbox if split toggle on
-      var user = users[index];
-      return Text(user.name);
+    // TODO: re-order
+    users.sort((a, b) => a.order.compareTo(b.order));
+    List<User> sortedUsers =
+        users.where((user) => splitSelected[user.userId]).toList();
+    sortedUsers
+        .addAll(users.where((user) => !splitSelected[user.userId]).toList());
+    return List<Widget>.generate(sortedUsers.length, (int index) {
+      // TODO: checkbox if split toggle on
+      var user = sortedUsers[index];
+      Widget userRow(user) {
+        return Row(children: <Widget>[
+          SizedBox(width: 8.0),
+          SizedBox(
+            width: showSplit ? 120.0 : 180.0,
+            child: Text(user.name),
+          ),
+          Expanded(
+            child: TextFormField(
+              keyboardType: TextInputType.number,
+              inputFormatters: <TextInputFormatter>[
+                WhitelistingTextInputFormatter.digitsOnly,
+              ],
+              decoration: InputDecoration(
+                border: OutlineInputBorder(),
+                suffixIcon: IconButton(
+                  icon: Icon(Icons.close),
+                  onPressed: () => userAmountControllers[user.userId].clear(),
+                ),
+              ),
+              controller: userAmountControllers[user.userId],
+            ),
+          ),
+        ]);
+      }
+
+      if (showSplit) {
+        return CheckboxListTile(
+          controlAffinity: ListTileControlAffinity.leading,
+          title: userRow(user),
+          value: splitSelected[user.userId],
+          onChanged: (bool value) {
+            setState(() {
+              splitSelected[user.userId] = value;
+            });
+          },
+        );
+      } else {
+        return ListTile(
+          title: userRow(user),
+        );
+      }
     });
   }
 
@@ -197,6 +249,14 @@ class _AddTransactionListState extends State<AddTransactionList>
           return Text('empty...');
         }
         var users = snapshot.data;
+        for (var user in users) {
+          if (!splitSelected.containsKey(user.userId)) {
+            splitSelected[user.userId] = false;
+          }
+          if (!userAmountControllers.containsKey(user.userId)) {
+            userAmountControllers[user.userId] = TextEditingController();
+          }
+        }
         return CustomScrollView(
           slivers: <Widget>[
             SliverPadding(
