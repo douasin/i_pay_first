@@ -78,4 +78,30 @@ class UserTransaction {
 }
 
 // Settings
-// class Setting { }
+class Setting {
+  int settingId;
+  int type;
+  String value;
+  int ctime;
+  int mtime;
+
+  Setting({this.settingId, this.type, this.value, this.ctime, this.mtime});
+
+  Setting.map(dynamic obj) {
+    this.settingId = obj['setting_id'];
+    this.type = obj['type'];
+    this.value = obj['value'];
+    this.ctime = obj['ctime'];
+    this.mtime = obj['mtime'];
+  }
+
+  Map<String, dynamic> toMap() {
+    var map = <String, dynamic>{};
+    map['setting_id'] = this.settingId;
+    map['type'] = this.type;
+    map['value'] = this.value;
+    map['ctime'] = this.ctime;
+    map['mtime'] = this.mtime;
+    return map;
+  }
+}

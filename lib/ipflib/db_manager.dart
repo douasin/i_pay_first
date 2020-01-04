@@ -59,6 +59,16 @@ class DatabaseManager {
             `history_id` INTEGER NOT NULL
         );""",
     );
+
+    await db.execute(
+      """CREATE TABLE `setting_tab` (
+	    `setting_id` INTEGER NOT NULL,
+	    `type` INTEGER NOT NULL,
+	    `value` TEXT NOT NULL,
+	    `ctime` INTEGER NOT NULL,
+	    `mtime` INTEGER NOT NULL
+	);""",
+    );
   }
 
   Future<int> createUser(User user) async {
@@ -115,6 +125,47 @@ class DatabaseManager {
       user.toMap(),
       where: "user_id = ?",
       whereArgs: <int>[user.userId],
+    );
+
+    return res > 0;
+  }
+
+  Future<Setting> getSettingBySettingId(int settingId) async {
+    final Database dbClient = await db;
+    List<Map> results = await dbClient.query(
+      "setting_tab",
+      columns: null, // all columns
+      where: "setting_id = ?",
+      whereArgs: <int>[settingId],
+    );
+    if (results.length == 0) {
+      return null;
+    }
+    var result = results[0];
+
+    Setting setting = Setting(
+      settingId: result['setting_id'],
+      type: result['type'],
+      value: result['value'],
+      ctime: result['ctime'],
+      mtime: result['mtime'],
+    );
+  }
+
+  Future<int> createSetting(Setting setting) async {
+    final Database dbClient = await db;
+    int res = await dbClient.insert("setting_tab", setting.toMap());
+
+    return res;
+  }
+
+  Future<bool> updateSetting(Setting setting) async {
+    final Database dbClient = await db;
+    int res = await dbClient.update(
+      "setting_tab",
+      setting.toMap(),
+      where: "setting_id = ?",
+      whereArgs: <int>[setting.settingId],
     );
 
     return res > 0;

@@ -220,7 +220,7 @@ class _AddTransactionListState extends State<AddTransactionList>
                           decoration: InputDecoration(
                             border: OutlineInputBorder(),
                             labelText: 'Tax',
-                            hintText: '%',
+                            hintText: '',
                             suffixIcon: IconButton(
                               icon: Icon(Icons.close),
                               onPressed: () => taxAmountController.clear(),
@@ -278,10 +278,7 @@ class _AddTransactionListState extends State<AddTransactionList>
       Widget userRow(user) {
         return Row(children: <Widget>[
           SizedBox(width: 8.0),
-          SizedBox(
-            width: showSplit ? 120.0 : 180.0,
-            child: Text(user.name),
-          ),
+          Expanded(child: Text(user.name)),
           Expanded(
             child: TextFormField(
               keyboardType: TextInputType.numberWithOptions(decimal: true),
