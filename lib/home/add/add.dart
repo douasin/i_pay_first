@@ -54,8 +54,14 @@ class _AddTransactionListState extends State<AddTransactionList>
   bool showTaxFee = false;
   bool showSplit = false;
 
+  bool useTax = false;
+  bool useFee = false;
+
   final splitAmountController = TextEditingController();
   final payForController = TextEditingController();
+
+  final taxAmountController = TextEditingController();
+  final feeAmountController = TextEditingController();
 
   Map<int, bool> splitSelectedUsers = {};
   Map<int, TextEditingController> userAmountControllers = {};
@@ -84,8 +90,12 @@ class _AddTransactionListState extends State<AddTransactionList>
     }
     Iterable<int> selectedUserIds =
         splitSelectedUsers.keys.where((userId) => splitSelectedUsers[userId]);
+    int numberNeedToSplit = selectedUserIds.length;
+    if (numberNeedToSplit == 0) {
+      return;
+    }
     double splitAmount =
-        double.parse(splitAmountController.text) / selectedUserIds.length;
+        double.parse(splitAmountController.text) / numberNeedToSplit;
     for (var userId in selectedUserIds) {
       var userAmountController = userAmountControllers[userId];
       userAmountController.text = splitAmount.toStringAsFixed(2);
@@ -106,6 +116,8 @@ class _AddTransactionListState extends State<AddTransactionList>
     }
     splitAmountController.dispose();
     payForController.dispose();
+    taxAmountController.dispose();
+    feeAmountController.dispose();
     super.dispose();
   }
 
@@ -188,8 +200,69 @@ class _AddTransactionListState extends State<AddTransactionList>
               ],
             )
           : Container(),
-      // TODO: input box of money, inputbox of tax and service fee (can cache)
-      // TODO: share to user has checked by check box, the amount can manually edit by inputbox
+      // tax collapse
+      showTaxFee
+          ? Row(
+              children: <Widget>[
+                Expanded(
+                  child: Row(
+                    children: <Widget>[
+                      Checkbox(
+                        value: useTax,
+                        onChanged: (bool value) {
+                          setState(() {
+                            useTax = value;
+                          });
+                        },
+                      ),
+                      Expanded(
+                        child: TextFormField(
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: 'Tax',
+                            hintText: '%',
+                            suffixIcon: IconButton(
+                              icon: Icon(Icons.close),
+                              onPressed: () => taxAmountController.clear(),
+                            ),
+                          ),
+                          controller: taxAmountController,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Row(
+                    children: <Widget>[
+                      Checkbox(
+                        value: useFee,
+                        onChanged: (bool value) {
+                          setState(() {
+                            useFee = value;
+                          });
+                        },
+                      ),
+                      Expanded(
+                        child: TextFormField(
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: 'Fee',
+                            hintText: '%',
+                            suffixIcon: IconButton(
+                              icon: Icon(Icons.close),
+                              onPressed: () => feeAmountController.clear(),
+                            ),
+                          ),
+                          controller: feeAmountController,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            )
+          : Container(),
     ];
   }
 
