@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 
 import '../../ipflib/user_manager.dart';
 import '../../ipflib/models.dart';
+import '../../ipflib/constants.dart';
+import '../../ipflib/operators/setting_operator.dart';
 import '../../utilities/state_model.dart';
 import '../../utilities/formatter.dart';
 
@@ -49,7 +51,7 @@ class AddTransactionList extends StatefulWidget {
 class _AddTransactionListState extends State<AddTransactionList>
     implements StateWithUpdate {
   UserManager userManager;
-  // Settings Manager
+  SettingOperator settingOperator;
 
   bool showTaxFee = false;
   bool showSplit = false;
@@ -98,14 +100,17 @@ class _AddTransactionListState extends State<AddTransactionList>
         double.parse(splitAmountController.text) / numberNeedToSplit;
     for (var userId in selectedUserIds) {
       var userAmountController = userAmountControllers[userId];
-      userAmountController.text = splitAmount.toStringAsFixed(2);
+      userAmountController.text = splitAmount.toStringAsFixed(systemDecimal);
     }
+    // collapse after split
+    showOrHideSplit();
   }
 
   @override
   void initState() {
     super.initState();
     userManager = UserManager(this);
+    settingOperator = SettingOperator(this);
   }
 
   @override
@@ -122,6 +127,7 @@ class _AddTransactionListState extends State<AddTransactionList>
   }
 
   List<Widget> formList() {
+    // TODO: add new user
     return <Widget>[
       TextFormField(
         decoration: InputDecoration(
@@ -267,12 +273,12 @@ class _AddTransactionListState extends State<AddTransactionList>
   }
 
   List<Widget> getUserCheckListByUsers(List<User> users) {
-    // TODO: re-order
     users.sort((a, b) => a.order.compareTo(b.order));
     List<User> sortedUsers =
         users.where((user) => splitSelectedUsers[user.userId]).toList();
     sortedUsers.addAll(
         users.where((user) => !splitSelectedUsers[user.userId]).toList());
+    // TODO: show current value and calculate with tax, fee
     return List<Widget>.generate(sortedUsers.length, (int index) {
       var user = sortedUsers[index];
       Widget userRow(user) {
@@ -317,11 +323,23 @@ class _AddTransactionListState extends State<AddTransactionList>
     });
   }
 
+  Future<Map<String, dynamic>> getUsersAndSettings() async {
+    Map<String, dynamic> result = {
+      'users': await userManager.getUsers(),
+      'tax': await settingOperator
+          .getOrCreateSettingBySettingName(SettingName.tax),
+      'fee': await settingOperator
+          .getOrCreateSettingBySettingName(SettingName.fee),
+    };
+    return result;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<User>>(
-      future: userManager.getUsers(),
-      builder: (BuildContext context, AsyncSnapshot<List<User>> snapshot) {
+    return FutureBuilder<Map<String, dynamic>>(
+      future: getUsersAndSettings(),
+      builder:
+          (BuildContext context, AsyncSnapshot<Map<String, dynamic>> snapshot) {
         switch (snapshot.connectionState) {
           case ConnectionState.active:
           case ConnectionState.none:
@@ -336,7 +354,7 @@ class _AddTransactionListState extends State<AddTransactionList>
         if (!snapshot.hasData) {
           return Text('empty...');
         }
-        var users = snapshot.data;
+        var users = snapshot.data['users'];
         for (var user in users) {
           if (!splitSelectedUsers.containsKey(user.userId)) {
             splitSelectedUsers[user.userId] = false;
@@ -345,6 +363,8 @@ class _AddTransactionListState extends State<AddTransactionList>
             userAmountControllers[user.userId] = TextEditingController();
           }
         }
+        taxAmountController.text = snapshot.data['tax'].value;
+        feeAmountController.text = snapshot.data['fee'].value;
         return CustomScrollView(
           slivers: <Widget>[
             SliverPadding(

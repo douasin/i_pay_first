@@ -25,8 +25,12 @@ class DatabaseManager {
   initDb() async {
     // io.Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String dbPath = join(await getDatabasesPath(), 'i_pay_first.db');
-    final Future<Database> database =
-        openDatabase(dbPath, version: 2, onCreate: _onCreate);
+    final Future<Database> database = openDatabase(
+      dbPath,
+      version: 4,
+      onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
+    );
     return database;
   }
 
@@ -46,17 +50,18 @@ class DatabaseManager {
     );
 
     await db.execute(
-      """CREATE TABLE `balance_history_tab` (
-            `history_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+      """CREATE TABLE `transaction_tab` (
+            `transaction_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
             `reason` TEXT,
-            `ctime` INTEGER NOT NULL
+            `ctime` INTEGER NOT NULL,
+            `mtime` INTEGER NOT NULL
         );""",
     );
 
     await db.execute(
-      """CREATE TABLE `user_balance_history_tab` (
+      """CREATE TABLE `user_transaction_tab` (
             `user_id` INTERGER NOT NULL,
-            `history_id` INTEGER NOT NULL
+            `transaction_id` INTEGER NOT NULL
         );""",
     );
 
@@ -69,6 +74,14 @@ class DatabaseManager {
 	    `mtime` INTEGER NOT NULL
 	);""",
     );
+  }
+
+  void _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    await db.execute("DROP TABLE IF EXISTS user_tab");
+    await db.execute("DROP TABLE IF EXISTS balance_history_tab");
+    await db.execute("DROP TABLE IF EXISTS user_balance_history_tab");
+    await db.execute("DROP TABLE IF EXISTS setting_tab");
+    _onCreate(db, newVersion);
   }
 
   Future<int> createUser(User user) async {
@@ -85,13 +98,30 @@ class DatabaseManager {
     await deleteUserByUserId(2);
     await deleteUserByUserId(3);
     await deleteUserByUserId(4);
-    await createUser(
-        User(userId: 1, name: 'Fendy', balance: 3000000, order: 0));
-    await createUser(
-        User(userId: 2, name: 'Jason', balance: 5000000, order: 0));
-    await createUser(User(userId: 3, name: 'Yaru', balance: -45000, order: 0));
-    await createUser(User(userId: 4, name: 'Boss', balance: -3000, order: 0));
-    */
+    await createUser(User(
+        userId: 1,
+        name: 'Fendy',
+        balance: 3000000,
+        order: 0,
+        ctime: 0,
+        mtime: 0));
+    await createUser(User(
+        userId: 2,
+        name: 'Jason',
+        balance: 5000000,
+        order: 0,
+        ctime: 0,
+        mtime: 0));
+    await createUser(User(
+        userId: 3,
+        name: 'Yaru',
+        balance: -45000,
+        order: 0,
+        ctime: 0,
+        mtime: 0));
+    await createUser(User(
+        userId: 4, name: 'Boss', balance: -3000, order: 0, ctime: 0, mtime: 0));
+	*/
     final Database dbClient = await db;
     List<Map> results = await dbClient.rawQuery('SELECT * FROM user_tab');
     List<User> userList = [];

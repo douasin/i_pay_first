@@ -40,13 +40,15 @@ class Transaction {
   int transactionId;
   String reason;
   int ctime;
+  int mtime;
 
-  Transaction({this.transactionId, this.reason, this.ctime});
+  Transaction({this.transactionId, this.reason, this.ctime, this.mtime});
 
   Transaction.map(dynamic obj) {
     this.transactionId = obj['transaction_id'];
     this.reason = obj['reason'];
     this.ctime = obj['ctime'];
+    this.mtime = obj['mtime'];
   }
 
   Map<String, dynamic> toMap() {
@@ -54,6 +56,7 @@ class Transaction {
     map['transaction_id'] = this.transactionId;
     map['reason'] = this.reason;
     map['ctime'] = this.ctime;
+    map['mtime'] = this.mtime;
     return map;
   }
 }
