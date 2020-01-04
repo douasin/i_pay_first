@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../../ipflib/user_manager.dart';
 import '../../ipflib/models.dart';
 import '../../utilities/state_model.dart';
+import '../../utilities/formatter.dart';
 
 class AddTransactionPage extends StatefulWidget {
   AddTransactionPage({Key key}) : super(key: key);
@@ -56,7 +57,7 @@ class _AddTransactionListState extends State<AddTransactionList>
   final splitAmountController = TextEditingController();
   final payForController = TextEditingController();
 
-  Map<int, bool> splitSelected = {};
+  Map<int, bool> splitSelectedUsers = {};
   Map<int, TextEditingController> userAmountControllers = {};
 
   void showOrHideSplit() {
@@ -77,6 +78,19 @@ class _AddTransactionListState extends State<AddTransactionList>
     });
   }
 
+  void splitToSelectedUsers() {
+    if (splitAmountController.text.isEmpty) {
+      return;
+    }
+    double splitAmount = double.parse(splitAmountController.text);
+    Iterable<int> selectedUserIds =
+        splitSelectedUsers.keys.where((userId) => splitSelectedUsers[userId]);
+    for (var userId in selectedUserIds) {
+      var userAmountController = userAmountControllers[userId];
+      userAmountController.text = splitAmount.toString();
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -86,7 +100,11 @@ class _AddTransactionListState extends State<AddTransactionList>
   @override
   void dispose() {
     // Clean up the controller when the widget is disposed.
+    for (var userAmountController in userAmountControllers.values) {
+      userAmountController.dispose();
+    }
     splitAmountController.dispose();
+    payForController.dispose();
     super.dispose();
   }
 
@@ -144,10 +162,10 @@ class _AddTransactionListState extends State<AddTransactionList>
               children: <Widget>[
                 Expanded(
                   child: TextFormField(
-                    keyboardType: TextInputType.number,
+                    keyboardType:
+                        TextInputType.numberWithOptions(decimal: true),
                     inputFormatters: <TextInputFormatter>[
-                      WhitelistingTextInputFormatter
-                          .digitsOnly, // only numbers can be entered
+                      DecimalTextInputFormatter(decimalRange: 2),
                     ],
                     decoration: InputDecoration(
                       border: OutlineInputBorder(),
@@ -164,7 +182,7 @@ class _AddTransactionListState extends State<AddTransactionList>
                 SizedBox(width: 5),
                 RaisedButton(
                   child: Text('split'),
-                  onPressed: () => null,
+                  onPressed: () => splitToSelectedUsers(),
                 ),
               ],
             )
@@ -178,11 +196,10 @@ class _AddTransactionListState extends State<AddTransactionList>
     // TODO: re-order
     users.sort((a, b) => a.order.compareTo(b.order));
     List<User> sortedUsers =
-        users.where((user) => splitSelected[user.userId]).toList();
-    sortedUsers
-        .addAll(users.where((user) => !splitSelected[user.userId]).toList());
+        users.where((user) => splitSelectedUsers[user.userId]).toList();
+    sortedUsers.addAll(
+        users.where((user) => !splitSelectedUsers[user.userId]).toList());
     return List<Widget>.generate(sortedUsers.length, (int index) {
-      // TODO: checkbox if split toggle on
       var user = sortedUsers[index];
       Widget userRow(user) {
         return Row(children: <Widget>[
@@ -193,9 +210,9 @@ class _AddTransactionListState extends State<AddTransactionList>
           ),
           Expanded(
             child: TextFormField(
-              keyboardType: TextInputType.number,
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
               inputFormatters: <TextInputFormatter>[
-                WhitelistingTextInputFormatter.digitsOnly,
+                DecimalTextInputFormatter(decimalRange: 2),
               ],
               decoration: InputDecoration(
                 border: OutlineInputBorder(),
@@ -214,10 +231,10 @@ class _AddTransactionListState extends State<AddTransactionList>
         return CheckboxListTile(
           controlAffinity: ListTileControlAffinity.leading,
           title: userRow(user),
-          value: splitSelected[user.userId],
+          value: splitSelectedUsers[user.userId],
           onChanged: (bool value) {
             setState(() {
-              splitSelected[user.userId] = value;
+              splitSelectedUsers[user.userId] = value;
             });
           },
         );
@@ -250,8 +267,8 @@ class _AddTransactionListState extends State<AddTransactionList>
         }
         var users = snapshot.data;
         for (var user in users) {
-          if (!splitSelected.containsKey(user.userId)) {
-            splitSelected[user.userId] = false;
+          if (!splitSelectedUsers.containsKey(user.userId)) {
+            splitSelectedUsers[user.userId] = false;
           }
           if (!userAmountControllers.containsKey(user.userId)) {
             userAmountControllers[user.userId] = TextEditingController();
