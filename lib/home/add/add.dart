@@ -82,12 +82,13 @@ class _AddTransactionListState extends State<AddTransactionList>
     if (splitAmountController.text.isEmpty) {
       return;
     }
-    double splitAmount = double.parse(splitAmountController.text);
     Iterable<int> selectedUserIds =
         splitSelectedUsers.keys.where((userId) => splitSelectedUsers[userId]);
+    double splitAmount =
+        double.parse(splitAmountController.text) / selectedUserIds.length;
     for (var userId in selectedUserIds) {
       var userAmountController = userAmountControllers[userId];
-      userAmountController.text = splitAmount.toString();
+      userAmountController.text = splitAmount.toStringAsFixed(2);
     }
   }
 
