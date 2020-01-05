@@ -53,6 +53,7 @@ class _AddTransactionListState extends State<AddTransactionList>
   UserManager userManager;
   SettingOperator settingOperator;
 
+  bool initCompleted = false;
   bool showTaxFee = false;
   bool showSplit = false;
 
@@ -223,6 +224,11 @@ class _AddTransactionListState extends State<AddTransactionList>
                       ),
                       Expanded(
                         child: TextFormField(
+                          keyboardType:
+                              TextInputType.numberWithOptions(decimal: true),
+                          inputFormatters: <TextInputFormatter>[
+                            DecimalTextInputFormatter(decimalRange: 2),
+                          ],
                           decoration: InputDecoration(
                             border: OutlineInputBorder(),
                             labelText: 'Tax',
@@ -281,6 +287,7 @@ class _AddTransactionListState extends State<AddTransactionList>
     // TODO: show current value and calculate with tax, fee
     return List<Widget>.generate(sortedUsers.length, (int index) {
       var user = sortedUsers[index];
+
       Widget userRow(user) {
         return Row(children: <Widget>[
           SizedBox(width: 8.0),
@@ -304,6 +311,19 @@ class _AddTransactionListState extends State<AddTransactionList>
         ]);
       }
 
+      Widget userSubtitle(User user) {
+        if (useTax == true || useFee == true) {
+          return Row(children: <Widget>[
+            SizedBox(width: 8.0),
+            // TODO: show tax, fee result
+            Expanded(child: Text('test')),
+            Expanded(child: Container()),
+          ]);
+        } else {
+          return Container();
+        }
+      }
+
       if (showSplit) {
         return CheckboxListTile(
           controlAffinity: ListTileControlAffinity.leading,
@@ -314,10 +334,12 @@ class _AddTransactionListState extends State<AddTransactionList>
               splitSelectedUsers[user.userId] = value;
             });
           },
+          subtitle: userSubtitle(user),
         );
       } else {
         return ListTile(
           title: userRow(user),
+          subtitle: userSubtitle(user),
         );
       }
     });
@@ -326,10 +348,14 @@ class _AddTransactionListState extends State<AddTransactionList>
   Future<Map<String, dynamic>> getUsersAndSettings() async {
     Map<String, dynamic> result = {
       'users': await userManager.getUsers(),
-      'tax': await settingOperator
-          .getOrCreateSettingBySettingName(SettingName.tax),
-      'fee': await settingOperator
-          .getOrCreateSettingBySettingName(SettingName.fee),
+      'tax_amount': await settingOperator
+          .getOrCreateSettingBySettingName(SettingName.taxAmount),
+      'tax_activated': await settingOperator
+          .getOrCreateSettingBySettingName(SettingName.taxActivated),
+      'fee_amount': await settingOperator
+          .getOrCreateSettingBySettingName(SettingName.feeAmount),
+      'fee_activated': await settingOperator
+          .getOrCreateSettingBySettingName(SettingName.feeActivated),
     };
     return result;
   }
@@ -355,16 +381,23 @@ class _AddTransactionListState extends State<AddTransactionList>
           return Text('empty...');
         }
         var users = snapshot.data['users'];
-        for (var user in users) {
-          if (!splitSelectedUsers.containsKey(user.userId)) {
+        if (!initCompleted) {
+          for (var user in users) {
             splitSelectedUsers[user.userId] = false;
-          }
-          if (!userAmountControllers.containsKey(user.userId)) {
             userAmountControllers[user.userId] = TextEditingController();
           }
+          taxAmountController.text = snapshot.data['tax_amount'].value;
+          feeAmountController.text = snapshot.data['fee_amount'].value;
+          useTax = parseSettingValueByType(
+            snapshot.data['tax_activated'].value,
+            SettingTypeValueToName[snapshot.data['tax_activated'].type],
+          );
+          useFee = parseSettingValueByType(
+            snapshot.data['fee_activated'].value,
+            SettingTypeValueToName[snapshot.data['fee_activated'].type],
+          );
+          initCompleted = true;
         }
-        taxAmountController.text = snapshot.data['tax'].value;
-        feeAmountController.text = snapshot.data['fee'].value;
         return CustomScrollView(
           slivers: <Widget>[
             SliverPadding(

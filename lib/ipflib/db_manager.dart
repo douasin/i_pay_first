@@ -27,7 +27,7 @@ class DatabaseManager {
     String dbPath = join(await getDatabasesPath(), 'i_pay_first.db');
     final Future<Database> database = openDatabase(
       dbPath,
-      version: 4,
+      version: 7,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -78,8 +78,8 @@ class DatabaseManager {
 
   void _onUpgrade(Database db, int oldVersion, int newVersion) async {
     await db.execute("DROP TABLE IF EXISTS user_tab");
-    await db.execute("DROP TABLE IF EXISTS balance_history_tab");
-    await db.execute("DROP TABLE IF EXISTS user_balance_history_tab");
+    await db.execute("DROP TABLE IF EXISTS transaction_tab");
+    await db.execute("DROP TABLE IF EXISTS user_transaction_tab");
     await db.execute("DROP TABLE IF EXISTS setting_tab");
     _onCreate(db, newVersion);
   }

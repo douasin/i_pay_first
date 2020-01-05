@@ -7,14 +7,26 @@ import '../models.dart';
 import '../constants.dart';
 import '../../utilities/state_model.dart';
 
-String formatValueByType(dynamic value, SettingType type) {
+String formatSettingValueByType(dynamic value, SettingType type) {
   if (type == SettingType.string) {
     return value;
   } else if (type == SettingType.double) {
     return value.toStringAsFixed(systemDecimal);
+  } else if (type == SettingType.bool) {
+    return value.toString();
   }
   // TODO: more type
   return "";
+}
+
+dynamic parseSettingValueByType(String value, SettingType type) {
+  if (type == SettingType.string) {
+    return value;
+  } else if (type == SettingType.double) {
+    return double.parse(value);
+  } else if (type == SettingType.bool) {
+    return value.toLowerCase() == 'true';
+  }
 }
 
 class SettingOperator {
@@ -35,7 +47,7 @@ class SettingOperator {
     setting = Setting(
       settingId: settingId,
       type: SettingTypeNameToValue[type],
-      value: formatValueByType(
+      value: formatSettingValueByType(
         SettingDefaultValue[settingName],
         type,
       ),
