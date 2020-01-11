@@ -8,6 +8,8 @@ import '../../ipflib/operators/setting_operator.dart';
 import '../../utilities/state_model.dart';
 import '../../utilities/formatter.dart';
 
+final int newUserIdStartNumber = 10000;
+
 class AddTransactionPage extends StatefulWidget {
   AddTransactionPage({Key key}) : super(key: key);
 
@@ -68,6 +70,9 @@ class _AddTransactionListState extends State<AddTransactionList>
 
   Map<int, bool> splitSelectedUsers = {};
   Map<int, TextEditingController> userAmountControllers = {};
+  Map<int, TextEditingController> newUserNameControllers = {};
+
+  List<User> newUserList = [];
 
   void showOrHideSplit() {
     setState(() {
@@ -87,16 +92,26 @@ class _AddTransactionListState extends State<AddTransactionList>
     });
   }
 
-  void splitToSelectedUsers() {
+  bool canSplitToSelectedUsers() {
     if (splitAmountController.text.isEmpty) {
-      return;
+      return false;
     }
     Iterable<int> selectedUserIds =
         splitSelectedUsers.keys.where((userId) => splitSelectedUsers[userId]);
     int numberNeedToSplit = selectedUserIds.length;
     if (numberNeedToSplit == 0) {
+      return false;
+    }
+    return true;
+  }
+
+  void splitToSelectedUsers() {
+    if (!canSplitToSelectedUsers()) {
       return;
     }
+    Iterable<int> selectedUserIds =
+        splitSelectedUsers.keys.where((userId) => splitSelectedUsers[userId]);
+    int numberNeedToSplit = selectedUserIds.length;
     double splitAmount =
         double.parse(splitAmountController.text) / numberNeedToSplit;
     for (var userId in selectedUserIds) {
@@ -105,6 +120,59 @@ class _AddTransactionListState extends State<AddTransactionList>
     }
     // collapse after split
     showOrHideSplit();
+  }
+
+  bool hasEmptyNewUser() {
+    for (var user in newUserList) {
+      if (user.name.isEmpty) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool isNewUserId(int userId) {
+    return userId >= newUserIdStartNumber;
+  }
+
+  bool isNewUser(User user) {
+    return isNewUserId(user.userId);
+  }
+
+  void initialUserServiceByUserId(int userId) {
+    splitSelectedUsers[userId] = false;
+    userAmountControllers[userId] = TextEditingController();
+    if (isNewUserId(userId)) {
+      if (newUserNameControllers.containsKey(userId)) {
+        return;
+      }
+      newUserNameControllers[userId] = TextEditingController();
+    }
+  }
+
+  Function addContact() {
+    if (hasEmptyNewUser()) {
+      return null;
+    }
+    void _addContact() {
+      setState(() {
+        int newUserId = newUserIdStartNumber + newUserList.length;
+        initialUserServiceByUserId(newUserId);
+        newUserList.add(User(
+            userId: newUserId,
+            name: "",
+            balance: 0,
+            order: 0,
+            ctime: 0,
+            mtime: 0));
+      });
+    }
+
+    return _addContact;
+  }
+
+  Function createTransaction() {
+    return null;
   }
 
   @override
@@ -120,6 +188,9 @@ class _AddTransactionListState extends State<AddTransactionList>
     for (var userAmountController in userAmountControllers.values) {
       userAmountController.dispose();
     }
+    for (var newUserNameController in newUserNameControllers.values) {
+      newUserNameController.dispose();
+    }
     splitAmountController.dispose();
     payForController.dispose();
     taxAmountController.dispose();
@@ -130,6 +201,40 @@ class _AddTransactionListState extends State<AddTransactionList>
   List<Widget> formList() {
     // TODO: add new user
     return <Widget>[
+      Row(
+        children: <Widget>[
+          Expanded(
+            child: Row(
+              children: <Widget>[
+                RaisedButton(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Text('Add'),
+                      Icon(Icons.contacts),
+                    ],
+                  ),
+                  onPressed: addContact(),
+                ),
+                Expanded(child: Container()),
+              ],
+            ),
+          ),
+          Expanded(
+            child: RaisedButton(
+              color: Colors.green,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Text('Pay'),
+                  Icon(Icons.monetization_on),
+                ],
+              ),
+              onPressed: createTransaction(),
+            ),
+          ),
+        ],
+      ),
       TextFormField(
         decoration: InputDecoration(
           border: OutlineInputBorder(),
@@ -202,7 +307,9 @@ class _AddTransactionListState extends State<AddTransactionList>
                 SizedBox(width: 5),
                 RaisedButton(
                   child: Text('split'),
-                  onPressed: () => splitToSelectedUsers(),
+                  onPressed: canSplitToSelectedUsers()
+                      ? () => splitToSelectedUsers()
+                      : null,
                 ),
               ],
             )
@@ -278,12 +385,27 @@ class _AddTransactionListState extends State<AddTransactionList>
     ];
   }
 
+  Widget userNameOrTextField(User user) {
+    if (!isNewUser(user)) {
+      return Text(user.name);
+    } else {
+      return TextFormField(
+          controller: newUserNameControllers[user.userId],
+          onChanged: (val) {
+            setState(() {
+              user.name = val;
+            });
+          });
+    }
+  }
+
   List<Widget> getUserCheckListByUsers(List<User> users) {
     users.sort((a, b) => a.order.compareTo(b.order));
-    List<User> sortedUsers =
-        users.where((user) => splitSelectedUsers[user.userId]).toList();
-    sortedUsers.addAll(
-        users.where((user) => !splitSelectedUsers[user.userId]).toList());
+    List<User> sortedUsers = [
+      ...newUserList,
+      ...users.where((user) => splitSelectedUsers[user.userId]).toList(),
+      ...users.where((user) => !splitSelectedUsers[user.userId]).toList(),
+    ];
     // TODO: show current value and calculate with tax, fee
     return List<Widget>.generate(sortedUsers.length, (int index) {
       var user = sortedUsers[index];
@@ -291,7 +413,8 @@ class _AddTransactionListState extends State<AddTransactionList>
       Widget userRow(user) {
         return Row(children: <Widget>[
           SizedBox(width: 8.0),
-          Expanded(child: Text(user.name)),
+          Expanded(child: userNameOrTextField(user)),
+          SizedBox(width: 8.0),
           Expanded(
             child: TextFormField(
               keyboardType: TextInputType.numberWithOptions(decimal: true),
@@ -383,8 +506,7 @@ class _AddTransactionListState extends State<AddTransactionList>
         var users = snapshot.data['users'];
         if (!initCompleted) {
           for (var user in users) {
-            splitSelectedUsers[user.userId] = false;
-            userAmountControllers[user.userId] = TextEditingController();
+            initialUserServiceByUserId(user.userId);
           }
           taxAmountController.text = snapshot.data['tax_amount'].value;
           feeAmountController.text = snapshot.data['fee_amount'].value;
