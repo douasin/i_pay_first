@@ -85,13 +85,36 @@ class DatabaseManager {
     _onCreate(db, newVersion);
   }
 
-  Future<int> createUser(User user) async {
+  Future<int> createUser(Map<String, dynamic> data) async {
     final sqflite.Database dbClient = await db;
-    var data = user.toMap();
-    data.remove('user_id');
     int res = await dbClient.insert("user_tab", data);
 
     return res;
+  }
+
+  Future<User> getUserByUserId(int userId) async {
+    final sqflite.Database dbClient = await db;
+    List<Map> results = await dbClient.query(
+      "user_tab",
+      columns: null, // all columns
+      where: "user_id = ?",
+      whereArgs: <int>[userId],
+    );
+    if (results.isEmpty) {
+      return null;
+    }
+    var result = results[0];
+
+    User user = User(
+      userId: result['user_id'],
+      name: result['name'],
+      balance: result['balance'],
+      order: result['order'],
+      ctime: result['ctime'],
+      mtime: result['mtime'],
+    );
+
+    return user;
   }
 
   Future<List<User>> getUsers() async {
@@ -163,19 +186,16 @@ class DatabaseManager {
     return res > 0;
   }
 
-  Future<int> createTransaction(Transaction transaction) async {
+  Future<int> createTransaction(Map<String, dynamic> data) async {
     final sqflite.Database dbClient = await db;
-    var data = transaction.toMap();
-    data.remove('transaction_id');
     int res = await dbClient.insert("transaction_tab", data);
 
     return res;
   }
 
-  Future<int> createUserTransaction(UserTransaction userTransaction) async {
+  Future<int> createUserTransaction(Map<String, dynamic> data) async {
     final sqflite.Database dbClient = await db;
-    int res =
-        await dbClient.insert("user_transaction_tab", userTransaction.toMap());
+    int res = await dbClient.insert("user_transaction_tab", data);
 
     return res;
   }
@@ -188,7 +208,7 @@ class DatabaseManager {
       where: "setting_id = ?",
       whereArgs: <int>[settingId],
     );
-    if (results.length == 0) {
+    if (results.isEmpty) {
       return null;
     }
     var result = results[0];
@@ -200,12 +220,12 @@ class DatabaseManager {
       ctime: result['ctime'],
       mtime: result['mtime'],
     );
+
+    return setting;
   }
 
-  Future<int> createSetting(Setting setting) async {
+  Future<int> createSetting(Map<String, dynamic> data) async {
     final sqflite.Database dbClient = await db;
-    var data = setting.toMap();
-    data.remove('setting_id');
     int res = await dbClient.insert("setting_tab", data);
 
     return res;

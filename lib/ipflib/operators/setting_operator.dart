@@ -1,7 +1,5 @@
 import 'dart:async';
 
-import '../../corelib/utils.dart';
-
 import '../setting_manager.dart';
 import '../models.dart';
 import '../constants.dart';
@@ -39,19 +37,11 @@ class SettingOperator {
     if (setting != null) {
       return setting;
     }
-    int now = getTimeStamp();
     SettingType type = SettingTypeConfig[settingName];
-    setting = Setting(
-      settingId: settingId,
-      type: SettingTypeNameToValue[type],
-      value: formatSettingValueByType(
-        SettingDefaultValue[settingName],
-        type,
-      ),
-      ctime: now,
-      mtime: now,
-    );
-    await settingManager.createSetting(setting);
+    String value =
+        formatSettingValueByType(SettingDefaultValue[settingName], type);
+    await settingManager.createSetting(settingId, value);
+
     return setting;
   }
 }

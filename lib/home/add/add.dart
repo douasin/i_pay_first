@@ -3,13 +3,14 @@ import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../corelib/price_manager.dart';
+
 import '../../ipflib/user_manager.dart';
 import '../../ipflib/models.dart';
 import '../../ipflib/constants.dart';
+import '../../ipflib/operators/transaction_operator.dart';
 import '../../ipflib/operators/setting_operator.dart';
 import '../../utilities/formatter.dart';
-
-final int newUserIdStartNumber = 10000;
 
 class AddTransactionPage extends StatefulWidget {
   AddTransactionPage({Key key}) : super(key: key);
@@ -53,6 +54,7 @@ class AddTransactionList extends StatefulWidget {
 class _AddTransactionListState extends State<AddTransactionList> {
   UserManager userManager;
   SettingOperator settingOperator;
+  TransactionOperator transactionOperator;
 
   bool initCompleted = false;
   bool showTaxFee = false;
@@ -188,14 +190,6 @@ class _AddTransactionListState extends State<AddTransactionList> {
     return false;
   }
 
-  bool isNewUserId(int userId) {
-    return userId >= newUserIdStartNumber;
-  }
-
-  bool isNewUser(User user) {
-    return isNewUserId(user.userId);
-  }
-
   void initialUserServiceByUser(User user) {
     splitSelectedUsers[user.userId] = false;
     userAmountControllers[user.userId] = TextEditingController();
@@ -302,6 +296,7 @@ class _AddTransactionListState extends State<AddTransactionList> {
                 color: Colors.green,
                 child: Text('Pay'),
                 onPressed: () {
+                  createTransaction();
                   // Pop two times to main menu.
                   Navigator.of(context).pop();
                   Navigator.of(context).pop();
@@ -315,6 +310,48 @@ class _AddTransactionListState extends State<AddTransactionList> {
         );
       },
     );
+  }
+
+  Future<void> createTransaction() async {
+    String payReason = payForController.text;
+    Map<String, dynamic> extraData = {};
+
+    double rate = 1.0;
+    int totalAmount = 0;
+
+    String taxAmountString = taxAmountController.text;
+    if (useTax && taxAmountString.isNotEmpty) {
+      double taxAmount = double.parse(taxAmountString);
+      rate += taxAmount / 100;
+      extraData['tax'] = taxAmount;
+    }
+    String feeAmountString = feeAmountController.text;
+    if (useFee && feeAmountString.isNotEmpty) {
+      double feeAmount = double.parse(feeAmountString);
+      rate += feeAmount / 100;
+      extraData['fee'] = feeAmount;
+    }
+    extraData['rate'] = rate;
+
+    List<User> usersHaveAmount = [];
+    Map<int, int> userBalanceMap = {};
+    for (var userId in userAmountControllers.keys) {
+      var userAmountController = userAmountControllers[userId];
+      if (userAmountController.text.isEmpty) {
+        continue;
+      }
+      var user = userCache[userId];
+      int userAmount = inflatePrice(userAmountController.text);
+      int userActualAmount = (userAmount.toDouble() * rate).round();
+
+      usersHaveAmount.add(user);
+      userBalanceMap[user.userId] = userActualAmount;
+      totalAmount += userActualAmount;
+    }
+    extraData['total_amount'] = totalAmount;
+
+    await transactionOperator.createTransaction(
+        payReason, usersHaveAmount, userBalanceMap, extraData);
   }
 
   bool canCreateTransaction() {
@@ -337,7 +374,7 @@ class _AddTransactionListState extends State<AddTransactionList> {
     return hasRecord;
   }
 
-  Function createTransaction() {
+  Function createTransactionModal() {
     if (!canCreateTransaction()) {
       return null;
     }
@@ -349,6 +386,7 @@ class _AddTransactionListState extends State<AddTransactionList> {
     super.initState();
     userManager = UserManager();
     settingOperator = SettingOperator();
+    transactionOperator = TransactionOperator();
   }
 
   @override
@@ -398,7 +436,7 @@ class _AddTransactionListState extends State<AddTransactionList> {
                   Icon(Icons.monetization_on),
                 ],
               ),
-              onPressed: createTransaction(),
+              onPressed: createTransactionModal(),
             ),
           ),
         ],

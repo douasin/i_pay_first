@@ -1,5 +1,7 @@
 int systemDecimal = 2;
 
+final int newUserIdStartNumber = 10000;
+
 enum SettingType {
   int,
   double,

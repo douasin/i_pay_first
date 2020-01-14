@@ -1,14 +1,29 @@
 import 'dart:async';
 
-import 'package:i_pay_first/ipflib/db_manager.dart';
-import 'package:i_pay_first/ipflib/models.dart';
+import '../corelib/utils.dart';
+
+import 'db_manager.dart';
+import 'models.dart';
+import 'constants.dart';
+
+bool isNewUserId(int userId) {
+  return userId >= newUserIdStartNumber;
+}
+
+bool isNewUser(User user) {
+  return isNewUserId(user.userId);
+}
 
 class UserManager {
   var dbManager = DatabaseManager();
 
   UserManager();
 
-  Future<void> delete(int userId) async {
+  Future<User> getUserByUserId(int userId) async {
+    return dbManager.getUserByUserId(userId);
+  }
+
+  Future<void> deleteUserByUserId(int userId) async {
     await dbManager.deleteUserByUserId(userId);
   }
 
@@ -24,5 +39,26 @@ class UserManager {
     }
     return total;
   }
-  // TODO: set null to userid, gettimestamp for ctime, mtime when create user
+
+  Future<int> createUser(String name, int balance) async {
+    int now = getTimestamp();
+
+    Map<String, dynamic> data = {
+      'name': name,
+      'balance': balance,
+      'order': 0,
+      'ctime': now,
+      'mtime': now,
+    };
+    return dbManager.createUser(data);
+  }
+
+  Future<User> createAndGetUser(String name, int balance) async {
+    int userId = await createUser(name, balance);
+    return getUserByUserId(userId);
+  }
+
+  Future<bool> updateUser(User user) async {
+    return dbManager.updateUser(user);
+  }
 }

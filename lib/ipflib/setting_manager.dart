@@ -1,15 +1,26 @@
 import 'dart:async';
 
-import 'package:i_pay_first/ipflib/db_manager.dart';
-import 'package:i_pay_first/ipflib/models.dart';
+import '../corelib/utils.dart';
+
+import 'db_manager.dart';
+import 'models.dart';
 
 class SettingManager {
   var dbManager = DatabaseManager();
 
   SettingManager();
 
-  Future<int> createSetting(Setting setting) async {
-    return dbManager.createSetting(setting);
+  Future<int> createSetting(int settingId, String value) async {
+    int now = getTimestamp();
+
+    Map<String, dynamic> data = {
+      'setting_id': settingId,
+      'value': value,
+      'ctime': now,
+      'mtime': now,
+    };
+
+    return dbManager.createSetting(data);
   }
 
   Future<Setting> getSettingBySettingId(int settingId) async {
