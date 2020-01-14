@@ -12,20 +12,18 @@ class TransactionOperator {
 
   var transactionManager = TransactionManager();
 
-  Future<Setting> createTransaction(Map<String, dynamic> extraData) async {
+  Future<Transaction> createTransaction(
+      String payReason,
+      List<User> existedUserList,
+      List<User> newUserList,
+      Map<int, int> userBalanceMap,
+      Map<String, dynamic> extraData) async {
     int now = getTimeStamp();
-    SettingType type = SettingTypeConfig[settingName];
-    setting = Setting(
-      settingId: settingId,
-      type: SettingTypeNameToValue[type],
-      value: formatSettingValueByType(
-        SettingDefaultValue[settingName],
-        type,
-      ),
-      ctime: now,
-      mtime: now,
-    );
-    await settingManager.createSetting(setting);
-    return setting;
+
+    // STEP 1: create new user
+    // STEP 2: create transaction
+    // STEP 3: update balance for all user
+    // STEP 4: link user with transaction
+    return Transaction();
   }
 }

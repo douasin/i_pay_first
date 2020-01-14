@@ -87,7 +87,9 @@ class DatabaseManager {
 
   Future<int> createUser(User user) async {
     final sqflite.Database dbClient = await db;
-    int res = await dbClient.insert("user_tab", user.toMap());
+    var data = user.toMap();
+    data.remove('user_id');
+    int res = await dbClient.insert("user_tab", data);
 
     return res;
   }
@@ -163,7 +165,9 @@ class DatabaseManager {
 
   Future<int> createTransaction(Transaction transaction) async {
     final sqflite.Database dbClient = await db;
-    int res = await dbClient.insert("transaction_tab", transaction.toMap());
+    var data = transaction.toMap();
+    data.remove('transaction_id');
+    int res = await dbClient.insert("transaction_tab", data);
 
     return res;
   }
@@ -200,7 +204,9 @@ class DatabaseManager {
 
   Future<int> createSetting(Setting setting) async {
     final sqflite.Database dbClient = await db;
-    int res = await dbClient.insert("setting_tab", setting.toMap());
+    var data = setting.toMap();
+    data.remove('setting_id');
+    int res = await dbClient.insert("setting_tab", data);
 
     return res;
   }
