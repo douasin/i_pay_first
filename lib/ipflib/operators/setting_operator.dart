@@ -44,4 +44,17 @@ class SettingOperator {
 
     return setting;
   }
+
+  Future<bool> updateSettingBySettingName(
+      SettingName settingName, dynamic value) async {
+    int settingId = SettingNameNameToValue[settingName];
+    Setting setting = await settingManager.getSettingBySettingId(settingId);
+    if (setting == null) {
+      return false;
+    }
+    SettingType type = SettingTypeConfig[settingName];
+    String valueString = formatSettingValueByType(value, type);
+    setting.value = valueString;
+    return settingManager.updateSetting(setting);
+  }
 }

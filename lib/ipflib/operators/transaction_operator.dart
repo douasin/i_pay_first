@@ -26,7 +26,7 @@ class TransactionOperator {
             user.name, userBalanceMap[user.userId]);
       } else {
         // STEP 2-b: update balance for existed users
-        user.balance = userBalanceMap[user.userId];
+        user.balance += userBalanceMap[user.userId];
         await userManager.updateUser(user);
         userId = user.userId;
       }

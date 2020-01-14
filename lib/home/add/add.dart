@@ -297,9 +297,6 @@ class _AddTransactionListState extends State<AddTransactionList> {
                 child: Text('Pay'),
                 onPressed: () {
                   createTransaction();
-                  // Pop two times to main menu.
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pop();
                 }),
             FlatButton(
                 child: Text('cancel'),
@@ -320,14 +317,16 @@ class _AddTransactionListState extends State<AddTransactionList> {
     int totalAmount = 0;
 
     String taxAmountString = taxAmountController.text;
+    double taxAmount;
     if (useTax && taxAmountString.isNotEmpty) {
-      double taxAmount = double.parse(taxAmountString);
+      taxAmount = double.parse(taxAmountString);
       rate += taxAmount / 100;
       extraData['tax'] = taxAmount;
     }
     String feeAmountString = feeAmountController.text;
+    double feeAmount;
     if (useFee && feeAmountString.isNotEmpty) {
-      double feeAmount = double.parse(feeAmountString);
+      feeAmount = double.parse(feeAmountString);
       rate += feeAmount / 100;
       extraData['fee'] = feeAmount;
     }
@@ -352,6 +351,23 @@ class _AddTransactionListState extends State<AddTransactionList> {
 
     await transactionOperator.createTransaction(
         payReason, usersHaveAmount, userBalanceMap, extraData);
+
+    await settingOperator.updateSettingBySettingName(
+        SettingName.taxActivated, useTax);
+    if (useTax) {
+      await settingOperator.updateSettingBySettingName(
+          SettingName.taxAmount, taxAmount);
+    }
+    await settingOperator.updateSettingBySettingName(
+        SettingName.feeActivated, useFee);
+    if (useFee) {
+      await settingOperator.updateSettingBySettingName(
+          SettingName.feeAmount, feeAmount);
+    }
+
+    // Pop two times to main menu.
+    Navigator.of(context).pop();
+    Navigator.of(context).pop();
   }
 
   bool canCreateTransaction() {
