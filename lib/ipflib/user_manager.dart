@@ -3,18 +3,13 @@ import 'dart:async';
 import 'package:i_pay_first/ipflib/db_manager.dart';
 import 'package:i_pay_first/ipflib/models.dart';
 
-import 'package:i_pay_first/utilities/state_model.dart';
-
 class UserManager {
-  StateWithUpdate _view;
-
   var dbManager = DatabaseManager();
 
-  UserManager(this._view);
+  UserManager();
 
   Future<void> delete(int userId) async {
     await dbManager.deleteUserByUserId(userId);
-    updateScreen();
   }
 
   Future<List<User>> getUsers() async {
@@ -29,8 +24,5 @@ class UserManager {
     }
     return total;
   }
-
-  updateScreen() {
-    _view.screenUpdate();
-  }
+  // TODO: set null to userid, gettimestamp for ctime, mtime when create user
 }

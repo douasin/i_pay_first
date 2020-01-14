@@ -3,16 +3,16 @@ import 'dart:async';
 
 import 'package:path/path.dart';
 // import 'package:path_provider/path_provider.dart';
-import 'package:sqflite/sqflite.dart';
+import 'package:sqflite/sqflite.dart' as sqflite;
 
 import 'models.dart';
 
 class DatabaseManager {
   static final DatabaseManager _instance = new DatabaseManager.internal();
   factory DatabaseManager() => _instance;
-  static Database _db;
+  static sqflite.Database _db;
 
-  Future<Database> get db async {
+  Future<sqflite.Database> get db async {
     if (_db != null) {
       return _db;
     }
@@ -24,17 +24,17 @@ class DatabaseManager {
 
   initDb() async {
     // io.Directory documentsDirectory = await getApplicationDocumentsDirectory();
-    String dbPath = join(await getDatabasesPath(), 'i_pay_first.db');
-    final Future<Database> database = openDatabase(
+    String dbPath = join(await sqflite.getDatabasesPath(), 'i_pay_first.db');
+    final Future<sqflite.Database> database = sqflite.openDatabase(
       dbPath,
-      version: 7,
+      version: 8,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
     return database;
   }
 
-  void _onCreate(Database db, int version) async {
+  void _onCreate(sqflite.Database db, int version) async {
     // When creating the db, create the table
     // BIGINT not supported in sqlite
     // UNSGINED not supported in sqlite
@@ -54,7 +54,8 @@ class DatabaseManager {
             `transaction_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
             `reason` TEXT,
             `ctime` INTEGER NOT NULL,
-            `mtime` INTEGER NOT NULL
+            `mtime` INTEGER NOT NULL,
+	    `extra_data` TEXT NOT NULL
         );""",
     );
 
@@ -76,7 +77,7 @@ class DatabaseManager {
     );
   }
 
-  void _onUpgrade(Database db, int oldVersion, int newVersion) async {
+  void _onUpgrade(sqflite.Database db, int oldVersion, int newVersion) async {
     await db.execute("DROP TABLE IF EXISTS user_tab");
     await db.execute("DROP TABLE IF EXISTS transaction_tab");
     await db.execute("DROP TABLE IF EXISTS user_transaction_tab");
@@ -85,7 +86,7 @@ class DatabaseManager {
   }
 
   Future<int> createUser(User user) async {
-    final Database dbClient = await db;
+    final sqflite.Database dbClient = await db;
     int res = await dbClient.insert("user_tab", user.toMap());
 
     return res;
@@ -122,7 +123,7 @@ class DatabaseManager {
     await createUser(User(
         userId: 4, name: 'Boss', balance: -3000, order: 0, ctime: 0, mtime: 0));
 	*/
-    final Database dbClient = await db;
+    final sqflite.Database dbClient = await db;
     List<Map> results = await dbClient.rawQuery('SELECT * FROM user_tab');
     List<User> userList = [];
     for (var result in results) {
@@ -141,7 +142,7 @@ class DatabaseManager {
   }
 
   Future<int> deleteUserByUserId(int userId) async {
-    final Database dbClient = await db;
+    final sqflite.Database dbClient = await db;
     int res = await dbClient
         .rawDelete('DELETE FROM user_tab where user_id = ?', [userId]);
 
@@ -149,7 +150,7 @@ class DatabaseManager {
   }
 
   Future<bool> updateUser(User user) async {
-    final Database dbClient = await db;
+    final sqflite.Database dbClient = await db;
     int res = await dbClient.update(
       "user_tab",
       user.toMap(),
@@ -160,8 +161,23 @@ class DatabaseManager {
     return res > 0;
   }
 
+  Future<int> createTransaction(Transaction transaction) async {
+    final sqflite.Database dbClient = await db;
+    int res = await dbClient.insert("transaction_tab", transaction.toMap());
+
+    return res;
+  }
+
+  Future<int> createUserTransaction(UserTransaction userTransaction) async {
+    final sqflite.Database dbClient = await db;
+    int res =
+        await dbClient.insert("user_transaction_tab", userTransaction.toMap());
+
+    return res;
+  }
+
   Future<Setting> getSettingBySettingId(int settingId) async {
-    final Database dbClient = await db;
+    final sqflite.Database dbClient = await db;
     List<Map> results = await dbClient.query(
       "setting_tab",
       columns: null, // all columns
@@ -183,14 +199,14 @@ class DatabaseManager {
   }
 
   Future<int> createSetting(Setting setting) async {
-    final Database dbClient = await db;
+    final sqflite.Database dbClient = await db;
     int res = await dbClient.insert("setting_tab", setting.toMap());
 
     return res;
   }
 
   Future<bool> updateSetting(Setting setting) async {
-    final Database dbClient = await db;
+    final sqflite.Database dbClient = await db;
     int res = await dbClient.update(
       "setting_tab",
       setting.toMap(),

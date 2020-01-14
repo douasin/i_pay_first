@@ -5,7 +5,6 @@ import '../../corelib/utils.dart';
 import '../setting_manager.dart';
 import '../models.dart';
 import '../constants.dart';
-import '../../utilities/state_model.dart';
 
 String formatSettingValueByType(dynamic value, SettingType type) {
   if (type == SettingType.string) {
@@ -30,13 +29,11 @@ dynamic parseSettingValueByType(String value, SettingType type) {
 }
 
 class SettingOperator {
-  StateWithUpdate _view;
-
-  SettingOperator(this._view);
+  SettingOperator();
+  var settingManager = SettingManager();
 
   Future<Setting> getOrCreateSettingBySettingName(
       SettingName settingName) async {
-    var settingManager = SettingManager(_view);
     int settingId = SettingNameNameToValue[settingName];
     Setting setting = await settingManager.getSettingBySettingId(settingId);
     if (setting != null) {

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../ipflib/models.dart';
 import '../ipflib/user_manager.dart';
-import '../utilities/state_model.dart';
 
 import 'list/list.dart';
 import 'menu/menu.dart';
@@ -17,13 +16,13 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> implements StateWithUpdate {
+class _MyHomePageState extends State<MyHomePage> {
   UserManager userManager;
 
   @override
   void initState() {
     super.initState();
-    userManager = UserManager(this);
+    userManager = UserManager();
   }
 
   void _goToAddPage() {
@@ -72,10 +71,5 @@ class _MyHomePageState extends State<MyHomePage> implements StateWithUpdate {
         child: Icon(Icons.add),
       ),
     );
-  }
-
-  @override
-  void screenUpdate() {
-    setState(() {});
   }
 }

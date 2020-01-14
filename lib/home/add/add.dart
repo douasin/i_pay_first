@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -5,7 +7,6 @@ import '../../ipflib/user_manager.dart';
 import '../../ipflib/models.dart';
 import '../../ipflib/constants.dart';
 import '../../ipflib/operators/setting_operator.dart';
-import '../../utilities/state_model.dart';
 import '../../utilities/formatter.dart';
 
 final int newUserIdStartNumber = 10000;
@@ -17,14 +18,13 @@ class AddTransactionPage extends StatefulWidget {
   _AddTransactionPageState createState() => _AddTransactionPageState();
 }
 
-class _AddTransactionPageState extends State<AddTransactionPage>
-    implements StateWithUpdate {
+class _AddTransactionPageState extends State<AddTransactionPage> {
   UserManager userManager;
 
   @override
   void initState() {
     super.initState();
-    userManager = UserManager(this);
+    userManager = UserManager();
   }
 
   @override
@@ -50,8 +50,7 @@ class AddTransactionList extends StatefulWidget {
   _AddTransactionListState createState() => _AddTransactionListState();
 }
 
-class _AddTransactionListState extends State<AddTransactionList>
-    implements StateWithUpdate {
+class _AddTransactionListState extends State<AddTransactionList> {
   UserManager userManager;
   SettingOperator settingOperator;
 
@@ -61,6 +60,8 @@ class _AddTransactionListState extends State<AddTransactionList>
 
   bool useTax = false;
   bool useFee = false;
+  Timer setStateOngoing;
+  Queue<Function> setStateQueue = Queue();
 
   final splitAmountController = TextEditingController();
   final payForController = TextEditingController();
@@ -71,6 +72,7 @@ class _AddTransactionListState extends State<AddTransactionList>
   Map<int, bool> splitSelectedUsers = {};
   Map<int, TextEditingController> userAmountControllers = {};
   Map<int, TextEditingController> newUserNameControllers = {};
+  Map<int, User> userCache = {};
 
   List<User> newUserList = [];
 
@@ -90,6 +92,61 @@ class _AddTransactionListState extends State<AddTransactionList>
         showSplit = false;
       }
     });
+  }
+
+  void delaySetState(Function function) {
+    const duration = Duration(milliseconds: 800);
+    if (setStateOngoing != null) {
+      setStateOngoing.cancel();
+    }
+    setStateQueue.add(function);
+    setStateOngoing = Timer(duration, () {
+      setState(() {
+        while (setStateQueue.isNotEmpty) {
+          Function func = setStateQueue.removeLast();
+          func();
+        }
+      });
+    });
+  }
+
+  String getCurrentBalanceByUser(User user) {
+    String currentBalanceString = userAmountControllers[user.userId].text;
+    if (currentBalanceString.isEmpty) {
+      return "";
+    }
+    double currentBalanceByUser = double.parse(currentBalanceString);
+    String result = "${currentBalanceByUser.toStringAsFixed(systemDecimal)}";
+    double rate = 1.0;
+
+    String taxAmountString = taxAmountController.text;
+    double taxAmount = 0.0;
+    if (useTax && taxAmountString.isNotEmpty) {
+      taxAmount = double.parse(taxAmountString);
+      rate += (taxAmount / 100);
+    }
+
+    String feeAmountString = feeAmountController.text;
+    double feeAmount = 0.0;
+    if (useFee && feeAmountString.isNotEmpty) {
+      feeAmount = double.parse(feeAmountString);
+      rate += (feeAmount / 100);
+    }
+
+    if ((useTax && taxAmountString.isNotEmpty) ||
+        (useFee && feeAmountString.isNotEmpty)) {
+      String useTaxString = useTax
+          ? "${taxAmount >= 0 ? '+' : '-'} ${(taxAmount / 100).toStringAsFixed(systemDecimal)}"
+          : "";
+      String useFeeString = useFee
+          ? "${feeAmount >= 0 ? '+' : '-'} ${(feeAmount / 100).toStringAsFixed(systemDecimal)}"
+          : "";
+      double totalAmount = currentBalanceByUser * rate;
+      String template =
+          " * (1 ${useTaxString} ${useFeeString}) = ${totalAmount.toStringAsFixed(systemDecimal)}";
+      result += template;
+    }
+    return result;
   }
 
   bool canSplitToSelectedUsers() {
@@ -139,14 +196,15 @@ class _AddTransactionListState extends State<AddTransactionList>
     return isNewUserId(user.userId);
   }
 
-  void initialUserServiceByUserId(int userId) {
-    splitSelectedUsers[userId] = false;
-    userAmountControllers[userId] = TextEditingController();
-    if (isNewUserId(userId)) {
-      if (newUserNameControllers.containsKey(userId)) {
+  void initialUserServiceByUser(User user) {
+    splitSelectedUsers[user.userId] = false;
+    userAmountControllers[user.userId] = TextEditingController();
+    userCache[user.userId] = user;
+    if (isNewUserId(user.userId)) {
+      if (newUserNameControllers.containsKey(user.userId)) {
         return;
       }
-      newUserNameControllers[userId] = TextEditingController();
+      newUserNameControllers[user.userId] = TextEditingController();
     }
   }
 
@@ -157,29 +215,140 @@ class _AddTransactionListState extends State<AddTransactionList>
     void _addContact() {
       setState(() {
         int newUserId = newUserIdStartNumber + newUserList.length;
-        initialUserServiceByUserId(newUserId);
-        newUserList.add(User(
+        User newUser = User(
             userId: newUserId,
             name: "",
             balance: 0,
             order: 0,
             ctime: 0,
-            mtime: 0));
+            mtime: 0);
+        initialUserServiceByUser(newUser);
+        newUserList.add(newUser);
       });
     }
 
     return _addContact;
   }
 
+  void showStatus() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        List<Widget> transactionDetail = [];
+        String taxAmountString = taxAmountController.text;
+        String feeAmountString = feeAmountController.text;
+        double rate = 1.0;
+        double totalAmount = 0.0;
+        if (useTax && taxAmountString.isNotEmpty) {
+          double taxAmount = double.parse(taxAmountString);
+          rate += taxAmount / 100;
+          transactionDetail
+              .add(Text('tax: ${taxAmount.toStringAsFixed(systemDecimal)}'));
+        }
+        if (useFee && feeAmountString.isNotEmpty) {
+          double feeAmount = double.parse(feeAmountString);
+          rate += feeAmount / 100;
+          transactionDetail
+              .add(Text('fee: ${feeAmount.toStringAsFixed(systemDecimal)}'));
+        }
+        if (useTax && taxAmountString.isNotEmpty ||
+            useFee && feeAmountString.isNotEmpty) {
+          transactionDetail.add(
+            Divider(),
+          );
+        }
+        for (var userId in userAmountControllers.keys) {
+          var userAmountController = userAmountControllers[userId];
+          if (userAmountController.text.isEmpty) {
+            continue;
+          }
+          var user = userCache[userId];
+          double userAmount = double.parse(userAmountController.text);
+          totalAmount += userAmount * rate;
+          transactionDetail.add(
+            RichText(
+              text: TextSpan(
+                style: TextStyle(
+                  fontSize: 20,
+                  color: Colors.black,
+                ),
+                children: <TextSpan>[
+                  TextSpan(
+                    text: '${user.name}: ',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  TextSpan(
+                      text:
+                          '${(userAmount * rate).toStringAsFixed(systemDecimal)}'),
+                ],
+              ),
+            ),
+          );
+        }
+        transactionDetail.add(Divider());
+        transactionDetail
+            .add(Text('total: ${totalAmount.toStringAsFixed(systemDecimal)}'));
+        return AlertDialog(
+          title: Text("You pay first for ${payForController.text}"),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: transactionDetail,
+            ),
+          ),
+          actions: <Widget>[
+            FlatButton(
+                color: Colors.green,
+                child: Text('Pay'),
+                onPressed: () {
+                  // Pop two times to main menu.
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop();
+                }),
+            FlatButton(
+                child: Text('cancel'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                }),
+          ],
+        );
+      },
+    );
+  }
+
+  bool canCreateTransaction() {
+    if (payForController.text.isEmpty) {
+      return false;
+    }
+    for (var newUser in newUserList) {
+      if (newUser.name.isEmpty &&
+          userAmountControllers[newUser.userId].text.isNotEmpty) {
+        return false;
+      }
+    }
+    bool hasRecord = false;
+    for (var userAmountController in userAmountControllers.values) {
+      if (userAmountController.text.isNotEmpty) {
+        hasRecord = true;
+        break;
+      }
+    }
+    return hasRecord;
+  }
+
   Function createTransaction() {
-    return null;
+    if (!canCreateTransaction()) {
+      return null;
+    }
+    return showStatus;
   }
 
   @override
   void initState() {
     super.initState();
-    userManager = UserManager(this);
-    settingOperator = SettingOperator(this);
+    userManager = UserManager();
+    settingOperator = SettingOperator();
   }
 
   @override
@@ -199,7 +368,6 @@ class _AddTransactionListState extends State<AddTransactionList>
   }
 
   List<Widget> formList() {
-    // TODO: add new user
     return <Widget>[
       Row(
         children: <Widget>[
@@ -246,6 +414,9 @@ class _AddTransactionListState extends State<AddTransactionList>
           ),
         ),
         controller: payForController,
+        onChanged: (val) {
+          delaySetState(() => null);
+        },
       ),
       Row(
         children: <Widget>[
@@ -346,6 +517,11 @@ class _AddTransactionListState extends State<AddTransactionList>
                             ),
                           ),
                           controller: taxAmountController,
+                          onChanged: (val) {
+                            if (useTax) {
+                              delaySetState(() => null);
+                            }
+                          },
                         ),
                       ),
                     ],
@@ -374,6 +550,11 @@ class _AddTransactionListState extends State<AddTransactionList>
                             ),
                           ),
                           controller: feeAmountController,
+                          onChanged: (val) {
+                            if (useFee) {
+                              delaySetState(() => null);
+                            }
+                          },
                         ),
                       ),
                     ],
@@ -392,7 +573,7 @@ class _AddTransactionListState extends State<AddTransactionList>
       return TextFormField(
           controller: newUserNameControllers[user.userId],
           onChanged: (val) {
-            setState(() {
+            delaySetState(() {
               user.name = val;
             });
           });
@@ -406,7 +587,6 @@ class _AddTransactionListState extends State<AddTransactionList>
       ...users.where((user) => splitSelectedUsers[user.userId]).toList(),
       ...users.where((user) => !splitSelectedUsers[user.userId]).toList(),
     ];
-    // TODO: show current value and calculate with tax, fee
     return List<Widget>.generate(sortedUsers.length, (int index) {
       var user = sortedUsers[index];
 
@@ -425,10 +605,14 @@ class _AddTransactionListState extends State<AddTransactionList>
                 border: OutlineInputBorder(),
                 suffixIcon: IconButton(
                   icon: Icon(Icons.close),
-                  onPressed: () => userAmountControllers[user.userId].clear(),
+                  onPressed: () => delaySetState(
+                      () => userAmountControllers[user.userId].clear()),
                 ),
               ),
               controller: userAmountControllers[user.userId],
+              onChanged: (val) {
+                delaySetState(() => null);
+              },
             ),
           ),
         ]);
@@ -438,8 +622,7 @@ class _AddTransactionListState extends State<AddTransactionList>
         if (useTax == true || useFee == true) {
           return Row(children: <Widget>[
             SizedBox(width: 8.0),
-            // TODO: show tax, fee result
-            Expanded(child: Text('test')),
+            Expanded(child: Text(getCurrentBalanceByUser(user))),
             Expanded(child: Container()),
           ]);
         } else {
@@ -506,7 +689,7 @@ class _AddTransactionListState extends State<AddTransactionList>
         var users = snapshot.data['users'];
         if (!initCompleted) {
           for (var user in users) {
-            initialUserServiceByUserId(user.userId);
+            initialUserServiceByUser(user);
           }
           taxAmountController.text = snapshot.data['tax_amount'].value;
           feeAmountController.text = snapshot.data['fee_amount'].value;
@@ -535,10 +718,5 @@ class _AddTransactionListState extends State<AddTransactionList>
         );
       },
     );
-  }
-
-  @override
-  void screenUpdate() {
-    setState(() {});
   }
 }

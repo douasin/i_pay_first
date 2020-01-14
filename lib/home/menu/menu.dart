@@ -4,8 +4,6 @@ import '../../corelib/price_manager.dart';
 
 import '../../ipflib/user_manager.dart';
 
-import '../../utilities/state_model.dart';
-
 class MenuPage extends StatefulWidget {
   MenuPage({Key key}) : super(key: key);
 
@@ -13,13 +11,13 @@ class MenuPage extends StatefulWidget {
   _MenuPageState createState() => _MenuPageState();
 }
 
-class _MenuPageState extends State<MenuPage> implements StateWithUpdate {
+class _MenuPageState extends State<MenuPage> {
   UserManager userManager;
 
   @override
   void initState() {
     super.initState();
-    userManager = UserManager(this);
+    userManager = UserManager();
   }
 
   @override
@@ -109,10 +107,5 @@ class _MenuPageState extends State<MenuPage> implements StateWithUpdate {
         ),
       ],
     );
-  }
-
-  @override
-  void screenUpdate() {
-    setState(() {});
   }
 }
